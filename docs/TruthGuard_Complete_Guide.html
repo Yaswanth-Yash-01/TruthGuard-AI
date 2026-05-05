@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TruthGuard AI — Complete Technical Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 11.5pt; color: #1a1a2e; line-height: 1.8; background: #fff; }
+
+  .page { max-width: 920px; margin: 0 auto; padding: 48px 64px; }
+  @media print {
+    .page { padding: 0; max-width: 100%; }
+    .page-break { page-break-before: always; }
+    .no-break { page-break-inside: avoid; }
+    @page { margin: 18mm 16mm; }
+  }
+
+  /* Cover */
+  .cover { text-align:center; padding:70px 0 50px; border-bottom:3px solid #4f46e5; margin-bottom:48px; }
+  .cover-tag { display:inline-block; background:#4f46e5; color:#fff; padding:5px 16px; border-radius:99px; font-size:8.5pt; letter-spacing:.12em; text-transform:uppercase; margin-bottom:20px; font-weight:700; }
+  .cover h1 { font-size:34pt; font-weight:800; color:#1a1a2e; margin-bottom:6px; }
+  .cover h1 em { color:#4f46e5; font-style:normal; }
+  .cover-sub { font-size:13pt; color:#555; margin-bottom:30px; }
+  .cover-pills { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+  .pill { background:#f0f0ff; color:#4f46e5; border:1px solid #c7c7ff; padding:4px 14px; border-radius:99px; font-size:9pt; font-weight:600; }
+
+  /* TOC */
+  .toc { background:#fafaff; border:1px solid #e0e0f5; border-radius:10px; padding:28px 36px; margin-bottom:48px; }
+  .toc-title { font-size:10pt; font-weight:800; color:#4f46e5; text-transform:uppercase; letter-spacing:.1em; margin-bottom:14px; }
+  .toc ol { padding-left:18px; }
+  .toc li { padding:2px 0; font-size:10.5pt; }
+  .toc a { color:#1a1a2e; text-decoration:none; }
+  .toc a:hover { color:#4f46e5; }
+  .toc-sub { list-style:none; padding-left:16px; font-size:10pt; color:#666; }
+  .toc-sub li::before { content:"› "; color:#4f46e5; }
+
+  /* Headings */
+  h1.sec { font-size:20pt; color:#1a1a2e; border-bottom:3px solid #4f46e5; padding-bottom:10px; margin:52px 0 20px; }
+  h2.sub { font-size:14pt; color:#4f46e5; margin:30px 0 12px; }
+  h3.ssub { font-size:12pt; color:#1a1a2e; margin:20px 0 8px; border-left:3px solid #4f46e5; padding-left:10px; }
+
+  p { margin-bottom:14px; }
+  ul, ol { margin:10px 0 14px 22px; }
+  li { margin-bottom:6px; }
+  strong { color:#1a1a2e; }
+  em { color:#4f46e5; font-style:italic; }
+
+  /* Code */
+  pre { background:#0d1117; color:#e6edf3; padding:18px 22px; border-radius:8px; font-family:'Courier New',monospace; font-size:9pt; overflow-x:auto; margin:14px 0; line-height:1.65; }
+  code { font-family:'Courier New',monospace; font-size:9pt; background:#f0f0ff; color:#4f46e5; padding:2px 6px; border-radius:4px; }
+  pre code { background:none; color:inherit; padding:0; }
+
+  /* Analogy box */
+  .analogy { background:linear-gradient(135deg,#f0f4ff,#faf0ff); border:1px solid #c7c7ff; border-radius:10px; padding:18px 22px; margin:16px 0; }
+  .analogy-label { font-size:8.5pt; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:#7c3aed; margin-bottom:8px; }
+  .analogy p { margin-bottom:0; font-size:10.5pt; color:#333; }
+
+  /* Callout */
+  .callout { border-left:4px solid #4f46e5; background:#f4f4ff; padding:14px 18px; margin:16px 0; border-radius:0 8px 8px 0; font-size:10.5pt; }
+  .callout.green { border-color:#16a34a; background:#f0fdf4; }
+  .callout.amber { border-color:#d97706; background:#fffbeb; }
+  .callout.red   { border-color:#dc2626; background:#fef2f2; }
+  .callout-label { font-weight:800; font-size:9pt; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; color:#4f46e5; }
+  .callout.green .callout-label { color:#16a34a; }
+  .callout.amber .callout-label { color:#d97706; }
+  .callout.red .callout-label   { color:#dc2626; }
+
+  /* Tables */
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:10.5pt; }
+  th { background:#4f46e5; color:#fff; padding:10px 14px; text-align:left; font-weight:700; }
+  td { padding:10px 14px; border-bottom:1px solid #eee; vertical-align:top; }
+  tr:nth-child(even) td { background:#f9f9ff; }
+
+  /* Step boxes */
+  .steps { counter-reset:step; margin:16px 0; }
+  .step { display:flex; gap:16px; margin-bottom:16px; align-items:flex-start; }
+  .step-num { flex-shrink:0; width:32px; height:32px; background:#4f46e5; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11pt; }
+  .step-body { flex:1; padding-top:4px; }
+  .step-body strong { display:block; margin-bottom:4px; font-size:11pt; }
+
+  /* Diagram */
+  .diagram { background:#0d1117; color:#58a6ff; padding:20px 24px; border-radius:10px; font-family:'Courier New',monospace; font-size:8.5pt; line-height:1.6; overflow-x:auto; margin:16px 0; white-space:pre; }
+
+  /* Comparison */
+  .compare { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
+  .compare-box { border:1px solid #e0e0f0; border-radius:8px; padding:16px; }
+  .compare-box h4 { font-size:10pt; font-weight:800; margin-bottom:8px; }
+  .compare-box.bad h4 { color:#dc2626; }
+  .compare-box.good h4 { color:#16a34a; }
+
+  /* Badge */
+  .badge { display:inline-block; padding:3px 10px; border-radius:99px; font-size:8.5pt; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+  .b-blue   { background:#e0e7ff; color:#4338ca; }
+  .b-green  { background:#dcfce7; color:#15803d; }
+  .b-amber  { background:#fef9c3; color:#a16207; }
+  .b-red    { background:#fee2e2; color:#b91c1c; }
+  .b-purple { background:#f3e8ff; color:#7c3aed; }
+
+  /* Number highlight */
+  .big-num { font-size:28pt; font-weight:900; color:#4f46e5; line-height:1; }
+
+  /* Flow arrow row */
+  .flow { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:16px 0; }
+  .fnode { background:#4f46e5; color:#fff; padding:8px 14px; border-radius:6px; font-size:9.5pt; font-weight:700; }
+  .fnode.g { background:#16a34a; }
+  .fnode.o { background:#d97706; }
+  .fnode.r { background:#dc2626; }
+  .fnode.gr { background:#6b7280; }
+  .farr { color:#4f46e5; font-size:16pt; font-weight:900; }
+
+  .vocab-term { font-weight:800; color:#4f46e5; }
+  blockquote { border-left:3px solid #c7c7ff; padding-left:14px; color:#555; margin:12px 0 12px 4px; font-style:italic; }
+
+  hr { border:none; border-top:1px solid #e8e8f5; margin:32px 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ════════════════════ COVER ════════════════════ -->
+<div class="cover">
+  <div class="cover-tag">Complete Beginner-to-Expert Guide</div>
+  <h1><em>TruthGuard</em> AI</h1>
+  <div class="cover-sub">Everything you need to understand — from "what is AI?" to how<br>every line of this system works, in plain English.</div>
+  <div class="cover-pills">
+    <span class="pill">LLMs</span><span class="pill">Embeddings</span><span class="pill">RAG</span>
+    <span class="pill">Vector Databases</span><span class="pill">LangChain</span>
+    <span class="pill">LangGraph</span><span class="pill">AI Agents</span>
+    <span class="pill">Hallucination Detection</span><span class="pill">Pinecone</span>
+    <span class="pill">Gemini</span><span class="pill">FastAPI</span>
+  </div>
+</div>
+
+<!-- ════════════════════ TOC ════════════════════ -->
+<div class="toc">
+  <div class="toc-title">Table of Contents</div>
+  <ol>
+    <li><a href="#s1">What is an AI Language Model (LLM)?</a></li>
+    <li><a href="#s2">The Hallucination Problem — Why AI Lies</a></li>
+    <li><a href="#s3">What are Embeddings?</a></li>
+    <li><a href="#s4">What is a Vector Database? (Pinecone)</a></li>
+    <li><a href="#s5">What is RAG? (Retrieval-Augmented Generation)</a></li>
+    <li><a href="#s6">What is LangChain?</a></li>
+    <li><a href="#s7">What is LangGraph?</a></li>
+    <li><a href="#s8">What are AI Agents?</a></li>
+    <li><a href="#s9">TruthGuard AI — The Big Picture</a></li>
+    <li><a href="#s10">The 5-Node Pipeline — Step by Step</a></li>
+    <li><a href="#s11">Hallucination Detection — The Two-Layer System</a></li>
+    <li><a href="#s12">The Complete Tech Stack Explained</a></li>
+    <li><a href="#s13">What Happens When You Ask a Question</a></li>
+    <li><a href="#s14">The Chat UI Explained</a></li>
+    <li><a href="#s15">Setup Guide</a></li>
+  </ol>
+</div>
+
+<!-- ════════════════════ SECTION 1 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s1">1 · What is an AI Language Model (LLM)?</h1>
+
+<p>Before understanding TruthGuard AI, you need to understand what an <span class="vocab-term">LLM (Large Language Model)</span> is — because it is the brain at the center of everything.</p>
+
+<h2 class="sub">1.1 The Simple Explanation</h2>
+
+<p>Imagine you read every book, article, website, forum post, and scientific paper ever written — about <strong>500 billion pages of text</strong>. After reading all of that, you develop an incredibly powerful intuition for how language works, how facts connect, how to explain things, and how to write convincingly about nearly any topic.</p>
+
+<p>An LLM is a computer program that has essentially done that — except it didn't "read" and "remember" like a human. Instead, it was trained by a mathematical process that compressed all that text into billions of numerical weights (parameters) stored inside the model.</p>
+
+<div class="analogy">
+  <div class="analogy-label">Analogy — The Expert Guesser</div>
+  <p>Think of an LLM like a musician who has listened to millions of songs. Ask them to continue a melody and they'll produce something that sounds very musical and correct — because they've absorbed patterns from millions of examples. They're not looking anything up; they're generating based on deeply learned patterns. LLMs do the same thing with text.</p>
+</div>
+
+<h2 class="sub">1.2 How LLMs Actually Work — Token by Token</h2>
+
+<p>An LLM doesn't think in words or sentences. It works in <span class="vocab-term">tokens</span> — small chunks of text (roughly 1 word = 1–2 tokens). Given a sequence of tokens, the model predicts: <em>"what token is most likely to come next?"</em></p>
+
+<p>Example: You give it the tokens <code>"The Stripe API uses"</code> and it predicts <code>"authentication"</code> as the most likely next token, then <code>"via"</code>, then <code>"API"</code>, then <code>"keys"</code>, and so on — until it forms a complete answer.</p>
+
+<p>This might sound simple, but when you do this billions of times across hundreds of billions of training examples, something remarkable emerges: the model learns facts, reasoning, coding, translation, summarisation, and much more — all from the single task of "predict the next token."</p>
+
+<h2 class="sub">1.3 Gemini — The LLM Used in This Project</h2>
+
+<p>TruthGuard AI uses <span class="vocab-term">Gemini</span> — Google's family of LLMs. Specifically it auto-discovers and uses the best available model from your API key, with preference for <strong>Gemini 2.5 Flash</strong>.</p>
+
+<table>
+  <tr><th>Model</th><th>Strength</th><th>Used For</th></tr>
+  <tr><td>Gemini 2.5 Flash</td><td>Fast, smart, great at structured output</td><td>Answer generation, fact checking, consistency grading</td></tr>
+  <tr><td>Gemini Embedding 001</td><td>Converts text to numbers (vectors)</td><td>Embedding document chunks and user queries</td></tr>
+</table>
+
+<p>Gemini is accessed via Google's <strong>Generative Language REST API</strong> at <code>generativelanguage.googleapis.com</code>. This project calls it directly using Python's <code>requests</code> library — sending JSON over HTTPS and receiving JSON back.</p>
+
+<!-- ════════════════════ SECTION 2 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s2">2 · The Hallucination Problem — Why AI Lies</h1>
+
+<h2 class="sub">2.1 What is Hallucination?</h2>
+
+<p>Here is the most important thing to understand about LLMs: <strong>they don't look things up — they generate</strong>. There is no encyclopedia inside the model. When you ask a question, the model produces text that <em>statistically resembles</em> a correct answer, based on patterns in its training data.</p>
+
+<p>This works brilliantly most of the time. But it also means the model can generate text that sounds absolutely confident and authoritative — while being completely wrong. AI researchers call this <span class="vocab-term">hallucination</span>.</p>
+
+<div class="analogy">
+  <div class="analogy-label">Analogy — The Confident Bluffer</div>
+  <p>Imagine a contestant on a quiz show who, instead of saying "I don't know," always gives an extremely confident, detailed, plausible-sounding answer — even when they have no idea. They've absorbed so much general knowledge that they can construct convincing-sounding answers about nearly anything. Most of the time they're right. But sometimes they fabricate details with total confidence. That's an LLM hallucinating.</p>
+</div>
+
+<h2 class="sub">2.2 Real Examples of Hallucination</h2>
+
+<div class="compare">
+  <div class="compare-box bad">
+    <h4>❌ Hallucinated Answer</h4>
+    <p><em>Q: What is the Stripe webhook retry policy?</em></p>
+    <p style="font-size:10pt; color:#555; margin-top:8px;">"Stripe retries webhooks up to 5 times over 24 hours using an exponential backoff of 30 minutes between attempts."</p>
+    <p style="font-size:9.5pt; color:#dc2626; margin-top:8px;">⚠ The numbers here were fabricated. Stripe actually retries over several days with different intervals.</p>
+  </div>
+  <div class="compare-box good">
+    <h4>✅ Grounded Answer (RAG)</h4>
+    <p><em>Q: What is the Stripe webhook retry policy?</em></p>
+    <p style="font-size:10pt; color:#555; margin-top:8px;">"According to the Stripe documentation at stripe.com/docs/webhooks, Stripe attempts delivery multiple times over several days..."</p>
+    <p style="font-size:9.5pt; color:#16a34a; margin-top:8px;">✓ Answer derived strictly from retrieved documentation chunks.</p>
+  </div>
+</div>
+
+<h2 class="sub">2.3 Why This Matters for Stripe Documentation</h2>
+
+<p>If someone is building a payment system and gets incorrect API parameters, endpoint names, or webhook behaviour from an AI assistant, it could cause real financial or technical damage. TruthGuard AI treats hallucination as a first-class problem: it not only tries to prevent it (via RAG), but also <em>detects and scores it</em> in every answer it gives.</p>
+
+<!-- ════════════════════ SECTION 3 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s3">3 · What are Embeddings?</h1>
+
+<p>This is one of the most important concepts to understand, because it underpins the entire retrieval system. Embeddings are how computers understand <em>meaning</em>.</p>
+
+<h2 class="sub">3.1 The Core Idea — Turning Words into Numbers</h2>
+
+<p>Computers can only process numbers, not words. An <span class="vocab-term">embedding</span> is a way to convert a piece of text into a list of numbers (called a <span class="vocab-term">vector</span>) that captures the <em>meaning</em> of that text.</p>
+
+<p>In TruthGuard AI, we use <strong>Gemini Embedding 001</strong>, which converts any text into a list of <strong>3,072 numbers</strong>. This list of 3,072 numbers is the embedding — a mathematical representation of what that text means.</p>
+
+<div class="analogy">
+  <div class="analogy-label">Analogy — GPS Coordinates for Meaning</div>
+  <p>Think of GPS coordinates. London is at (51.5°N, 0.1°W). Paris is at (48.8°N, 2.3°E). They're different places, but their coordinates are close — because geographically, they're close. Berlin (52.5°N, 13.4°E) is close to both. Sydney (33.8°S, 151.2°E) is far away from all three.</p>
+  <p style="margin-top:8px;">Embeddings do the same thing for meaning. Texts with similar meaning get similar coordinates (numbers). "How do I accept a payment?" and "How do I charge a customer?" will produce very similar vectors. "What is the weather today?" will produce a very different vector.</p>
+</div>
+
+<h2 class="sub">3.2 Semantic Similarity — Why This is Magical</h2>
+
+<p>The revolutionary thing about embeddings is that they capture <em>semantic similarity</em> — similarity in meaning — not just similarity in exact words. Consider these two sentences:</p>
+
+<ul>
+  <li>"How do I create a PaymentIntent?"</li>
+  <li>"What's the process for initializing a payment in Stripe?"</li>
+</ul>
+
+<p>These sentences share only the word "a" and "Stripe" — yet their embeddings will be very close numerically because they mean the same thing. This allows TruthGuard AI to find relevant documentation even when the user's question uses completely different words from the documentation.</p>
+
+<h2 class="sub">3.3 How Similarity is Measured — Cosine Distance</h2>
+
+<p>To compare two embeddings (two lists of 3,072 numbers), we use <span class="vocab-term">cosine similarity</span>. This measures the angle between the two vectors in a 3,072-dimensional mathematical space.</p>
+
+<ul>
+  <li>Cosine similarity of <strong>1.0</strong> = identical meaning (same vector direction)</li>
+  <li>Cosine similarity of <strong>0.9</strong> = very similar meaning</li>
+  <li>Cosine similarity of <strong>0.5</strong> = loosely related</li>
+  <li>Cosine similarity of <strong>0.0</strong> = unrelated</li>
+</ul>
+
+<div class="analogy">
+  <div class="analogy-label">Analogy — The Compass Direction</div>
+  <p>Imagine each text is an arrow pointing in a direction in 3D space. "I love dogs" might point North-East. "I adore puppies" also points North-East (very similar direction → high cosine similarity). "The stock market fell today" points South-West (very different direction → low cosine similarity). The angle between the arrows is what cosine similarity measures.</p>
+</div>
+
+<h2 class="sub">3.4 How This Project Uses Embeddings</h2>
+
+<p>Embeddings are used in <strong>two places</strong>:</p>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <strong>During ingestion (one-time setup)</strong>
+      Every 500-character chunk of Stripe documentation is converted to a 3,072-number embedding and stored in Pinecone. We're essentially saying: "here is the mathematical fingerprint of this chunk's meaning."
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <strong>During query (every question asked)</strong>
+      The user's question is also converted to an embedding. We then find the 5 doc chunks whose embeddings are most similar (closest cosine distance) to the question's embedding. Those are the most relevant chunks to answer the question.
+    </div>
+  </div>
+</div>
+
+<p>The REST API call to get an embedding looks like this:</p>
+
+<pre><code>POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent
+     ?key=YOUR_API_KEY
+
+Body:
+{
+  "content": {
+    "parts": [{ "text": "How do I create a PaymentIntent?" }]
+  }
+}
+
+Response:
+{
+  "embedding": {
+    "values": [0.0234, -0.0156, 0.0891, ..., 0.0421]  ← 3,072 numbers
+  }
+}</code></pre>
+
+<!-- ════════════════════ SECTION 4 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s4">4 · What is a Vector Database? (Pinecone)</h1>
+
+<h2 class="sub">4.1 The Problem It Solves</h2>
+
+<p>After generating embeddings for thousands of document chunks, we need to store them and search through them quickly. A regular database (like MySQL or PostgreSQL) is great at exact lookups — "find all rows where name = 'John'". But it cannot answer: "find me the 5 embeddings most similar to this query embedding" efficiently.</p>
+
+<p>A <span class="vocab-term">vector database</span> is a specialised database designed exactly for this task: storing high-dimensional vectors and performing fast similarity searches across them.</p>
+
+<div class="analogy">
+  <div class="analogy-label">Analogy — The Music Recommendation Engine</div>
+  <p>Imagine Spotify stores every song as a list of numbers describing its musical characteristics (tempo, key, energy, danceability, etc.). When you hit "find songs like this," Spotify doesn't compare your song to every song in its library one by one — it uses a specialised index that can find the closest matches in milliseconds across 100 million songs. A vector database is that specialised index, but for any kind of meaning, not just music.</p>
+</div>
+
+<h2 class="sub">4.2 Pinecone — The Specific Tool Used</h2>
+
+<p><span class="vocab-term">Pinecone</span> is a cloud-hosted vector database. This project uses its <strong>Serverless</strong> tier (free). Here's what it stores for TruthGuard AI:</p>
+
+<table>
+  <tr><th>Field</th><th>Type</th><th>Example</th></tr>
+  <tr><td>ID</td><td>String (MD5 hash)</td><td><code>a3f7bc9e1d2...</code></td></tr>
+  <tr><td>Vector</td><td>3,072 floats</td><td><code>[0.023, -0.015, ...]</code></td></tr>
+  <tr><td>url (metadata)</td><td>String</td><td><code>https://stripe.com/docs/webhooks</code></td></tr>
+  <tr><td>page_title (metadata)</td><td>String</td><td><code>Stripe Webhooks</code></td></tr>
+  <tr><td>chunk_index (metadata)</td><td>Integer</td><td><code>4</code></td></tr>
+  <tr><td>text (metadata)</td><td>String</td><td><code>To verify a webhook, use stripe.webhooks...</code></td></tr>
+</table>
+
+<h2 class="sub">4.3 The Query Operation</h2>
+
+<p>When a user asks a question, TruthGuard AI sends this to Pinecone:</p>
+
+<pre><code># Python code in rag/retriever.py
+results = index.query(
+    vector=query_embedding,   # the 3,072-number embedding of the question
+    top_k=5,                  # return the 5 most similar chunks
+    include_metadata=True     # include url, title, text alongside each result
+)</code></pre>
+
+<p>Pinecone responds in milliseconds with the 5 most semantically relevant documentation chunks — even though it may be searching through thousands of stored vectors.</p>
+
+<!-- ════════════════════ SECTION 5 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s5">5 · What is RAG? (Retrieval-Augmented Generation)</h1>
+
+<h2 class="sub">5.1 The Core Concept</h2>
+
+<p><span class="vocab-term">RAG (Retrieval-Augmented Generation)</span> is a technique that gives an LLM access to a specific knowledge base at query time — solving the hallucination problem by grounding the model's answer in real, retrieved documents rather than training-data memory.</p>
+
+<p>The name tells you exactly what it does:</p>
+<ul>
+  <li><strong>Retrieval</strong> — find relevant documents from a knowledge base</li>
+  <li><strong>Augmented</strong> — add them to the LLM's prompt as context</li>
+  <li><strong>Generation</strong> — let the LLM generate an answer from that context</li>
+</ul>
+
+<div class="analogy">
+  <div class="analogy-label">Analogy — The Open Book Exam</div>
+  <p>Without RAG, asking an LLM a question is like asking a student to take a closed-book exam. They answer from memory — mostly right, but prone to errors and fabrications.</p>
+  <p style="margin-top:8px;">RAG is like giving the student specific relevant book pages to read right before answering. The student still writes the answer in their own words — but it's now grounded in the actual source material sitting in front of them. If they say something not in those pages, they're going off-script.</p>
+</div>
+
+<h2 class="sub">5.2 How RAG Works in TruthGuard AI</h2>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <strong>User asks:</strong> "How do I verify Stripe webhooks?"
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <strong>Embed the question:</strong> Convert to a 3,072-number vector using Gemini Embedding.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <strong>Search Pinecone:</strong> Find the 5 document chunks from Stripe docs most similar to the question vector.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <strong>Build the prompt:</strong> Inject those 5 chunks into the LLM prompt as "context". Instruct the LLM: "Answer ONLY from this context."
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <strong>Generate:</strong> Gemini reads the injected context and writes an answer grounded in the actual Stripe documentation.
+    </div>
+  </div>
+</div>
+
+<h2 class="sub">5.3 Why RAG is Better Than Fine-Tuning</h2>
+
+<p>An alternative to RAG is <span class="vocab-term">fine-tuning</span> — training the LLM on Stripe documentation so it "memorises" it. RAG is better for this use case because:</p>
+
+<table>
+  <tr><th></th><th>RAG</th><th>Fine-Tuning</th></tr>
+  <tr><td>Cost</td><td>Free (just storage + embedding API calls)</td><td>Very expensive (GPU training time)</td></tr>
+  <tr><td>Updates</td><td>Just re-scrape and re-embed</td><td>Re-train the entire model</td></tr>
+  <tr><td>Citations</td><td>Built-in (we know which chunk was used)</td><td>No source tracking</td></tr>
+  <tr><td>Scope control</td><td>Easy (only Stripe docs in the vector DB)</td><td>Hard (model absorbs general knowledge too)</td></tr>
+</table>
+
+<!-- ════════════════════ SECTION 6 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s6">6 · What is LangChain?</h1>
+
+<h2 class="sub">6.1 The Problem It Solves</h2>
+
+<p>Building an AI application involves many repetitive tasks: formatting prompts, calling models, parsing outputs, chaining steps together. <span class="vocab-term">LangChain</span> is a Python framework that provides standardised building blocks for all of this.</p>
+
+<p>Think of it like React for web development — you could write raw JavaScript, but React gives you reusable components (buttons, forms, etc.) that save time and work consistently. LangChain gives you reusable AI components.</p>
+
+<h2 class="sub">6.2 What TruthGuard AI Uses from LangChain</h2>
+
+<p>This project uses LangChain primarily for <strong>prompt templates</strong> — reusable prompt structures with variable placeholders:</p>
+
+<pre><code>from langchain_core.prompts import ChatPromptTemplate
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a Stripe documentation expert. Answer ONLY from context."),
+    ("human",  "Context:\n{context}\n\nQuestion: {query}")
+])
+
+# Fill in the variables:
+filled_prompt = prompt.format_messages(
+    context="[retrieved doc chunks]",
+    query="How do I verify webhooks?"
+)</code></pre>
+
+<p>LangChain also underpins LangGraph (the pipeline framework), so it's a transitive dependency throughout the project.</p>
+
+<!-- ════════════════════ SECTION 7 ════════════════════ -->
+<h1 class="sec" id="s7">7 · What is LangGraph?</h1>
+
+<h2 class="sub">7.1 Why LangGraph — Not Just a Chain</h2>
+
+<p>LangChain's basic abstraction is a "chain" — a linear sequence: step A → step B → step C. For simple pipelines this is fine. But TruthGuard AI needs something more sophisticated: a pipeline with <strong>multiple independent agents</strong>, shared state, and the potential for conditional logic and loops.</p>
+
+<p><span class="vocab-term">LangGraph</span> models your pipeline as a <strong>directed graph</strong> — a network of nodes (processing steps) connected by edges (data flow). This makes complex multi-agent systems much easier to build and reason about.</p>
+
+<div class="analogy">
+  <div class="analogy-label">Analogy — Factory Assembly Line</div>
+  <p>Think of a car factory. A car starts as raw materials and passes through stations: welding → painting → engine fitting → quality control → final inspection. Each station does one specific job and passes the result to the next. LangGraph is the conveyor belt system that manages this flow — each "station" is a node, and the car (your data) passes through with accumulated work attached to it at each stage.</p>
+</div>
+
+<h2 class="sub">7.2 Key LangGraph Concepts</h2>
+
+<h3 class="ssub">StateGraph</h3>
+<p>The main class. You define a <code>TypedDict</code> that describes all the data the pipeline will carry, then register nodes and edges.</p>
+
+<h3 class="ssub">State</h3>
+<p>A shared Python dictionary that flows through every node. Each node reads from it and writes updates back to it. In TruthGuard AI, the state carries: the original query, retrieved context, the generated answer, fact-check results, and consistency scores — all accumulated as data moves through the graph.</p>
+
+<h3 class="ssub">Nodes</h3>
+<p>Python functions that take the current state, do something (call an API, run a model, parse output), and return a dictionary of updated state keys.</p>
+
+<h3 class="ssub">Edges</h3>
+<p>Connections between nodes. <code>add_edge("A", "B")</code> means: after node A finishes, run node B. LangGraph supports conditional edges too (e.g., "if score > 50, go to node X, else go to node Y").</p>
+
+<pre><code># How the TruthGuard pipeline is wired in graph/pipeline.py:
+
+graph = StateGraph(PipelineState)
+graph.add_node("retrieve",          retrieve_node)
+graph.add_node("generate",          generate_node)
+graph.add_node("fact_check",        fact_check_node)
+graph.add_node("consistency_guard", consistency_guard_node)
+graph.add_node("compile",           compile_node)
+
+graph.set_entry_point("retrieve")
+graph.add_edge("retrieve",          "generate")
+graph.add_edge("generate",          "fact_check")
+graph.add_edge("fact_check",        "consistency_guard")
+graph.add_edge("consistency_guard", "compile")
+graph.add_edge("compile",           END)
+
+pipeline = graph.compile()
+result = pipeline.invoke({"query": "How do webhooks work?", ...})</code></pre>
+
+<!-- ════════════════════ SECTION 8 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s8">8 · What are AI Agents?</h1>
+
+<h2 class="sub">8.1 Agent vs. Simple LLM Call</h2>
+
+<p>A simple LLM call is: give the model a prompt, get text back. An <span class="vocab-term">AI agent</span> is a more sophisticated pattern where:</p>
+<ul>
+  <li>The LLM is given a <strong>specific role and goal</strong></li>
+  <li>It receives <strong>structured inputs</strong> relevant to that role</li>
+  <li>It is expected to produce <strong>structured output</strong> (often JSON)</li>
+  <li>Its output is used programmatically by the next step</li>
+</ul>
+
+<div class="analogy">
+  <div class="analogy-label">Analogy — A Company Department</div>
+  <p>Think of a company with departments. You don't ask the entire company a question — you route it to the right department. The Legal department has a specific mandate, receives specific inputs (contracts, complaints), and produces specific outputs (legal opinions, risk assessments). A software developer department does the same with code.</p>
+  <p style="margin-top:8px;">In TruthGuard AI, the Fact Checker agent is like the Legal department: it has one specific job (verify claims), receives structured inputs (answer + context), and returns structured verdicts. The Consistency Guard is a separate department that performs an independent audit.</p>
+</div>
+
+<h2 class="sub">8.2 How Agents Are Implemented Here</h2>
+
+<p>In TruthGuard AI, each agent is a Python function that:</p>
+<ol>
+  <li>Constructs a carefully engineered prompt with a specific role description and exact output format specification</li>
+  <li>Calls the Gemini LLM via REST at temperature 0 (maximum determinism)</li>
+  <li>Parses the JSON response from the LLM</li>
+  <li>Returns a Python dictionary</li>
+</ol>
+
+<p>The key to making agents work reliably is the <strong>output format specification</strong> in the prompt. The model is told exactly what JSON to return, shown an example template, and instructed: "Return ONLY this JSON — no markdown, no extra text."</p>
+
+<!-- ════════════════════ SECTION 9 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s9">9 · TruthGuard AI — The Big Picture</h1>
+
+<p>Now that you understand all the individual concepts, here's how they come together in TruthGuard AI.</p>
+
+<div class="diagram">
+USER TYPES A QUESTION IN THE BROWSER
+          │
+          ▼
+┌─────────────────────────────────────────┐
+│            FastAPI Server               │
+│    Receives POST /ask { "question": … } │
+└──────────────────┬──────────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────────────────────────────────┐
+│               LangGraph Pipeline (5 nodes)                        │
+│                                                                   │
+│  ┌──────────┐                                                     │
+│  │ RETRIEVE │  Embed question → search Pinecone → get 5 chunks    │
+│  └────┬─────┘  (rag/retriever.py + Gemini Embedding + Pinecone)   │
+│       │                                                           │
+│       ▼                                                           │
+│  ┌──────────┐                                                     │
+│  │ GENERATE │  Inject chunks into prompt → Gemini LLM → answer   │
+│  └────┬─────┘  (rag/generator.py + rag/llm_client.py)            │
+│       │                                                           │
+│       ▼                                                           │
+│  ┌────────────┐                                                   │
+│  │ FACT CHECK │  Extract claims → verify each → SUPPORTED/       │
+│  │  (Agent 1) │  UNSUPPORTED/CONTRADICTED → overall PASS/FAIL    │
+│  └─────┬──────┘  (agents/fact_checker.py + Gemini LLM)           │
+│        │                                                          │
+│        ▼                                                          │
+│  ┌─────────────────┐                                             │
+│  │ CONSISTENCY     │  Read claim verdicts + context →            │
+│  │ GUARD (Agent 2) │  hallucination_score 0-100 →               │
+│  └─────────┬───────┘  TRUSTED / SUSPICIOUS / HALLUCINATED        │
+│            │          (agents/consistency_guard.py + Gemini LLM) │
+│            ▼                                                      │
+│  ┌─────────┐                                                      │
+│  │ COMPILE │  Assemble all outputs into final JSON response       │
+│  └────┬────┘  (graph/pipeline.py)                                 │
+└───────┼──────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌───────────────────────────────────────────────────────┐
+│  JSON Response to Browser:                            │
+│  {                                                    │
+│    answer:   "...",                                   │
+│    sources:  [{url, title}, ...],                     │
+│    fact_check: { claims: [...], verdict: "PASS" },   │
+│    consistency: { score: 12, label: "TRUSTED" }      │
+│  }                                                    │
+└───────────────────────────────────────────────────────┘
+        │
+        ▼
+BROWSER RENDERS: answer + trust badge + score bar
+                 + expandable claims + source URLs
+</div>
+
+<!-- ════════════════════ SECTION 10 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s10">10 · The 5-Node Pipeline — Step by Step</h1>
+
+<h2 class="sub">Node 1 — RETRIEVE (<code>rag/retriever.py</code>)</h2>
+
+<p><strong>What it receives:</strong> the user's raw question (a string)</p>
+<p><strong>What it does:</strong></p>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <strong>Calls the Gemini Embedding REST API</strong> with the question text and task type <code>RETRIEVAL_QUERY</code>. Gets back 3,072 numbers.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <strong>Sends those 3,072 numbers to Pinecone</strong> asking for <code>top_k=5</code> — the 5 most similar vectors. Pinecone returns 5 document chunks with their metadata (url, title, text) and similarity scores.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <strong>Formats the chunks into a context string</strong> with source headers, and extracts a deduplicated list of source URLs. Writes both to the shared LangGraph state.
+    </div>
+  </div>
+</div>
+
+<p><strong>What it writes to state:</strong> <code>context</code> (formatted text), <code>sources</code> (list of URLs)</p>
+
+<hr>
+
+<h2 class="sub">Node 2 — GENERATE (<code>rag/generator.py</code>)</h2>
+
+<p><strong>What it receives:</strong> <code>context</code> and <code>query</code> from state</p>
+<p><strong>What it does:</strong> Builds a two-part prompt:</p>
+
+<pre><code>SYSTEM: "You are TruthGuard AI. Answer ONLY from the provided context.
+        Never use general knowledge. Never fabricate API details."
+
+USER:   "Context from Stripe documentation:
+        [the 5 retrieved chunks go here]
+
+        Question: [user's question]
+
+        Answer strictly from the context above:"</code></pre>
+
+<p>Sends this to Gemini at <code>temperature=0.1</code> (near-deterministic but slight variation allowed). Gets back the answer text.</p>
+
+<p><strong>What it writes to state:</strong> <code>answer</code></p>
+
+<hr>
+
+<h2 class="sub">Node 3 — FACT CHECK (<code>agents/fact_checker.py</code>)</h2>
+
+<p><strong>What it receives:</strong> <code>answer</code> and <code>context</code> from state</p>
+<p><strong>What it does:</strong> Sends a carefully crafted prompt to Gemini at <code>temperature=0</code> instructing it to act as a fact-checking agent:</p>
+
+<ol>
+  <li>Extract every atomic factual claim from the answer</li>
+  <li>For each claim, check whether it is SUPPORTED, UNSUPPORTED, or CONTRADICTED by the context</li>
+  <li>Return a JSON object with all verdicts and an overall PASS/FAIL</li>
+</ol>
+
+<p>Example output from this node:</p>
+<pre><code>{
+  "claims": [
+    {
+      "claim": "Stripe sends a Stripe-Signature header with each webhook",
+      "verdict": "SUPPORTED",
+      "reason": "Context explicitly mentions Stripe-Signature header in webhook verification."
+    },
+    {
+      "claim": "Webhook events expire after 72 hours",
+      "verdict": "UNSUPPORTED",
+      "reason": "No expiry timing mentioned in the retrieved context."
+    }
+  ],
+  "overall_verdict": "FAIL",
+  "summary": "One of two claims lacks documentation support."
+}</code></pre>
+
+<p><strong>What it writes to state:</strong> <code>fact_check_result</code></p>
+
+<hr>
+
+<h2 class="sub">Node 4 — CONSISTENCY GUARD (<code>agents/consistency_guard.py</code>)</h2>
+
+<p><strong>What it receives:</strong> <code>query</code>, <code>answer</code>, <code>fact_check_result</code>, <code>context</code> from state</p>
+<p><strong>What it does:</strong> A second independent Gemini call at <code>temperature=0</code>. This agent performs a holistic audit — it reads everything and assigns a numerical risk score:</p>
+
+<table>
+  <tr><th>Score</th><th>Label</th><th>Colour in UI</th><th>What it means</th></tr>
+  <tr><td>0 – 20</td><td><span class="badge b-green">TRUSTED</span></td><td>Green</td><td>All claims supported, answer is accurate and appropriately scoped</td></tr>
+  <tr><td>21 – 50</td><td><span class="badge b-amber">SUSPICIOUS</span></td><td>Amber</td><td>Some unsupported claims; use with caution</td></tr>
+  <tr><td>51 – 100</td><td><span class="badge b-red">HALLUCINATED</span></td><td>Red</td><td>Significant fabrications or contradictions detected</td></tr>
+</table>
+
+<p>Example output:</p>
+<pre><code>{
+  "hallucination_score": 22,
+  "label": "SUSPICIOUS",
+  "final_summary": "The answer accurately describes webhook verification but includes one timing claim not found in the retrieved documentation. Use the verified portion with confidence.",
+  "additional_flags": ["unverified_expiry_timing"]
+}</code></pre>
+
+<p><strong>What it writes to state:</strong> <code>consistency_result</code></p>
+
+<hr>
+
+<h2 class="sub">Node 5 — COMPILE (<code>graph/pipeline.py</code>)</h2>
+
+<p><strong>What it does:</strong> Assembles <code>answer</code>, <code>sources</code>, <code>fact_check_result</code>, and <code>consistency_result</code> into a single <code>final_output</code> dictionary that the FastAPI endpoint returns as JSON.</p>
+
+<!-- ════════════════════ SECTION 11 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s11">11 · Hallucination Detection — The Two-Layer System</h1>
+
+<h2 class="sub">11.1 Why Two Agents Are Better Than One</h2>
+
+<p>A single agent verifying its own output is unreliable — the same model that generated a hallucination may validate it too. Two independent agents with different scopes provide defence in depth:</p>
+
+<table>
+  <tr><th>Agent</th><th>Scope</th><th>Output</th><th>Catches</th></tr>
+  <tr>
+    <td>Layer 1 — Fact Checker</td>
+    <td>Fine-grained: claim by claim</td>
+    <td>Per-claim verdicts + PASS/FAIL</td>
+    <td>Individual wrong facts, fabricated details, contradictions</td>
+  </tr>
+  <tr>
+    <td>Layer 2 — Consistency Guard</td>
+    <td>Holistic: the whole answer</td>
+    <td>Score 0–100 + TRUSTED/SUSPICIOUS/HALLUCINATED</td>
+    <td>Misleading framing, selective omission, overconfident tone, scope violations</td>
+  </tr>
+</table>
+
+<h2 class="sub">11.2 How Claim Extraction Works</h2>
+
+<p>The Layer 1 agent breaks an answer into its atomic facts. The sentence:</p>
+
+<blockquote>"You can set up webhooks in the Stripe Dashboard by going to Developers → Webhooks, where you can add an endpoint URL that receives events like <code>payment_intent.succeeded</code>."</blockquote>
+
+<p>…would be decomposed into these individual claims, each verified separately:</p>
+<ol>
+  <li>Webhooks are configured in the Stripe Dashboard</li>
+  <li>The path is Developers → Webhooks</li>
+  <li>You can add an endpoint URL</li>
+  <li>The endpoint receives events like <code>payment_intent.succeeded</code></li>
+</ol>
+
+<p>Why this matters: a single unsupported fact buried in an otherwise correct answer would be missed if you only verified the answer as a whole. The atomic approach catches everything.</p>
+
+<h2 class="sub">11.3 The JSON Output Contract</h2>
+
+<p>Both agents are instructed with extreme precision about their output format. Here is the exact instruction given to the Fact Checker:</p>
+
+<pre><code>"Return ONLY a valid JSON object — no markdown fences, no extra text:
+{
+  "claims": [
+    {
+      "claim": "&lt;exact claim text from the answer&gt;",
+      "verdict": "SUPPORTED|UNSUPPORTED|CONTRADICTED",
+      "reason": "&lt;one sentence citing specific context evidence&gt;"
+    }
+  ],
+  "overall_verdict": "PASS|FAIL",
+  "summary": "&lt;two-sentence overall assessment&gt;"
+}"</code></pre>
+
+<p>Temperature is set to <code>0</code> for both agents — the lowest possible setting — to maximise consistency and minimise creative variation in the verdicts.</p>
+
+<h2 class="sub">11.4 Robust JSON Parsing</h2>
+
+<p>Despite the strict instruction, LLMs occasionally add markdown formatting (<code>```json</code> fences). The parsing function applies three-stage recovery:</p>
+
+<pre><code>def _parse_json(raw: str) -> dict:
+    # Stage 1: strip markdown fences if present
+    raw = re.sub(r"^```(?:json)?", "", raw).rstrip("`").strip()
+
+    # Stage 2: direct parse
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+
+    # Stage 3: find first {...} block via regex and parse that
+    match = re.search(r"\{.*\}", raw, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group())
+        except:
+            pass
+
+    # Stage 4: safe fallback — never crash the pipeline
+    return {"claims": [], "overall_verdict": "FAIL",
+            "summary": f"Parse failed. Raw: {raw[:300]}"}</code></pre>
+
+<!-- ════════════════════ SECTION 12 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s12">12 · The Complete Tech Stack Explained</h1>
+
+<h2 class="sub">FastAPI</h2>
+<p><span class="vocab-term">FastAPI</span> is a modern Python web framework for building APIs. It handles incoming HTTP requests from the browser, validates the request body, calls the pipeline, and returns the JSON response. It's used because it's fast (asynchronous), type-safe (uses Python type hints), and auto-generates interactive API docs.</p>
+<p>In this project: serves the HTML chat page at <code>GET /</code> and runs the full pipeline on <code>POST /ask</code>.</p>
+
+<h2 class="sub">Uvicorn</h2>
+<p><span class="vocab-term">Uvicorn</span> is the ASGI server that runs FastAPI. Think of FastAPI as the engine of a car and Uvicorn as the chassis — Uvicorn handles the actual network connections, keeps the server alive, and passes requests to FastAPI to handle.</p>
+
+<h2 class="sub">Requests (Python Library)</h2>
+<p>The <span class="vocab-term">requests</span> library is how Python makes HTTP calls. Every call to the Gemini API in this project goes through <code>requests.post(url, json=body)</code>. It's the same as what your browser does when it loads a webpage, but from Python code.</p>
+
+<h2 class="sub">BeautifulSoup4</h2>
+<p><span class="vocab-term">BeautifulSoup</span> is a Python library for parsing HTML. When the scraper fetches a Stripe documentation page, the raw response is a string of HTML markup (<code>&lt;div&gt;, &lt;nav&gt;, &lt;p&gt;, &lt;script&gt;</code>, etc.). BeautifulSoup parses that string into a tree structure, allowing the scraper to remove navigation/footer elements and extract only the main documentation text.</p>
+
+<h2 class="sub">Python-dotenv</h2>
+<p><span class="vocab-term">python-dotenv</span> reads the <code>.env</code> file and loads API keys into Python's environment variables. This prevents secrets from being hardcoded in the source code. The pattern is universal in production Python development.</p>
+
+<h2 class="sub">Pydantic</h2>
+<p><span class="vocab-term">Pydantic</span> is a data validation library. FastAPI uses it to validate the incoming request body. When the browser sends <code>{"question": "..."}</code>, Pydantic checks that <code>question</code> is a string and not empty before the code even touches it. If validation fails, FastAPI automatically returns a 422 error with a clear message.</p>
+
+<h2 class="sub">LangChain Core</h2>
+<p>Provides the <code>ChatPromptTemplate</code> class — a reusable prompt with named variable slots. Instead of using Python f-strings, prompt templates make it easy to define prompts once and fill variables in consistently. LangGraph also depends on langchain-core internally.</p>
+
+<h2 class="sub">LangGraph</h2>
+<p>As explained in Section 7 — the graph-based pipeline orchestrator. It manages state passing between the 5 nodes, ensures they run in order, and handles the data flow between them.</p>
+
+<h2 class="sub">Google Gen AI SDK (<code>google-genai</code>)</h2>
+<p>Google's Python SDK for the Gemini API. In this project it is a transitive dependency (installed because <code>langchain-google-genai</code> needs it) but not called directly. All direct Gemini calls use <code>requests</code> instead, giving full control over API version and endpoint routing.</p>
+
+<h2 class="sub">Pinecone SDK</h2>
+<p>The official Python client for Pinecone. Used to create the index, upsert vectors, and run similarity queries. The SDK handles authentication, HTTP connection pooling, and retries to the Pinecone API.</p>
+
+<!-- ════════════════════ SECTION 13 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s13">13 · What Happens When You Ask a Question</h1>
+
+<p>Here is the complete, detailed journey of a single question through the entire system:</p>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <strong>You type "How do I verify a Stripe webhook?" and press Enter.</strong>
+      JavaScript's <code>fetch()</code> sends an HTTP POST request to <code>http://localhost:8000/ask</code> with body <code>{"question": "How do I verify a Stripe webhook?"}</code>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <strong>FastAPI receives the request.</strong>
+      Pydantic validates the body. The <code>ask()</code> function calls <code>run_pipeline(question)</code>.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <strong>LangGraph initialises the state</strong> as a Python dict: <code>{"query": "How do I verify...", "context": "", "sources": [], "answer": "", ...}</code> and starts execution at the "retrieve" node.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <strong>[RETRIEVE] Embedding API call #1.</strong>
+      POST to <code>generativelanguage.googleapis.com/.../gemini-embedding-001:embedContent</code> with the question text. Gets back 3,072 floats in ~200ms.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <strong>[RETRIEVE] Pinecone query.</strong>
+      Sends the 3,072-float vector to Pinecone asking for top 5 matches. Gets back 5 document chunks from Stripe docs in ~100ms.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">6</div>
+    <div class="step-body">
+      <strong>[RETRIEVE] State updated:</strong> <code>context</code> = formatted string of 5 chunks with source URLs. <code>sources</code> = list of unique source pages.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">7</div>
+    <div class="step-body">
+      <strong>[GENERATE] LLM call #1.</strong>
+      POST to <code>generativelanguage.googleapis.com/.../gemini-2.5-flash:generateContent</code> with the 5 chunks as context + the user's question. Gemini reads the context and writes an answer. ~1–3 seconds.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">8</div>
+    <div class="step-body">
+      <strong>[GENERATE] State updated:</strong> <code>answer</code> = the generated answer text.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">9</div>
+    <div class="step-body">
+      <strong>[FACT CHECK] LLM call #2.</strong>
+      POST to Gemini again, this time with a fact-checking prompt that includes the answer and the context. Temperature = 0. Gemini extracts claims and assigns verdicts. ~2–4 seconds.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">10</div>
+    <div class="step-body">
+      <strong>[FACT CHECK] State updated:</strong> <code>fact_check_result</code> = JSON with claims, verdicts, overall PASS/FAIL.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">11</div>
+    <div class="step-body">
+      <strong>[CONSISTENCY GUARD] LLM call #3.</strong>
+      POST to Gemini with a consistency audit prompt that includes the answer, context, AND the Layer 1 verdicts. Temperature = 0. Gemini assigns hallucination score + label. ~2–4 seconds.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">12</div>
+    <div class="step-body">
+      <strong>[COMPILE] Assemble.</strong>
+      All outputs combined into <code>final_output</code> dict. LangGraph marks execution complete.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">13</div>
+    <div class="step-body">
+      <strong>FastAPI returns JSON</strong> to the browser with answer, sources, claim verdicts, and trust score.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">14</div>
+    <div class="step-body">
+      <strong>JavaScript renders the Trust Card</strong> — the answer bubble appears, the score bar animates from 0 to the final score, the trust badge turns green/amber/red based on the label, and expandable sections show per-claim verdicts and source links.
+    </div>
+  </div>
+</div>
+
+<div class="callout amber">
+  <div class="callout-label">Total Time</div>
+  A typical question takes 5–15 seconds end-to-end. Most of this time is the three sequential LLM calls (each 1–4 seconds). The embedding call and Pinecone search together take under 500ms. The typing indicator in the UI shows while this is happening.
+</div>
+
+<!-- ════════════════════ SECTION 14 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s14">14 · The Chat UI Explained</h1>
+
+<h2 class="sub">14.1 How It's Built</h2>
+
+<p>The entire frontend is a single HTML file (<code>api/templates/index.html</code>) with no external libraries, no React, no npm. Just HTML, CSS, and ~120 lines of vanilla JavaScript. FastAPI serves it with <code>FileResponse</code> — just streaming the file directly.</p>
+
+<h2 class="sub">14.2 The Trust Card Components</h2>
+
+<p>When a response arrives from <code>POST /ask</code>, the JavaScript function <code>renderResponse(data)</code> builds the Trust Card HTML dynamically:</p>
+
+<table>
+  <tr><th>UI Element</th><th>Data Source</th><th>What It Shows</th></tr>
+  <tr><td>Trust Badge</td><td><code>data.consistency.label</code></td><td>TRUSTED (green) / SUSPICIOUS (amber) / HALLUCINATED (red)</td></tr>
+  <tr><td>Score Number</td><td><code>data.consistency.hallucination_score</code></td><td>Animates 0 → final score over 1 second</td></tr>
+  <tr><td>Score Bar</td><td>Same score as %</td><td>Fills left-to-right with CSS transition</td></tr>
+  <tr><td>Summary Text</td><td><code>data.consistency.final_summary</code></td><td>Human-readable reliability assessment</td></tr>
+  <tr><td>Claim Verdicts</td><td><code>data.fact_check.claims[]</code></td><td>Expandable list, colour-coded by verdict</td></tr>
+  <tr><td>Sources</td><td><code>data.sources[]</code></td><td>Expandable list of clickable Stripe doc URLs</td></tr>
+</table>
+
+<h2 class="sub">14.3 The Score Animation</h2>
+
+<p>The animating score number is implemented with <code>setInterval</code>:</p>
+
+<pre><code>let current = 0;
+const step = score / 50;   // reach target in 50 ticks
+const iv = setInterval(() => {
+    current = Math.min(current + step, score);
+    numEl.textContent = Math.round(current);
+    if (current >= score) clearInterval(iv);
+}, 20);  // fires every 20ms = ~1 second total animation</code></pre>
+
+<p>The bar uses a CSS transition: <code>transition: width 1.1s cubic-bezier(.22,1,.36,1)</code> — an "ease out" curve that starts fast and slows at the end, giving a satisfying visual weight.</p>
+
+<!-- ════════════════════ SECTION 15 ════════════════════ -->
+<div class="page-break"></div>
+<h1 class="sec" id="s15">15 · Setup Guide</h1>
+
+<h2 class="sub">What You Need</h2>
+<ul>
+  <li>Python 3.12 or higher</li>
+  <li>A <strong>Gemini API key</strong> — free from <code>aistudio.google.com/app/apikey</code></li>
+  <li>A <strong>Pinecone API key</strong> — free Serverless tier from <code>app.pinecone.io</code></li>
+  <li>Internet connection during ingestion and queries</li>
+</ul>
+
+<h2 class="sub">Step 1 — Install Dependencies</h2>
+<pre><code>cd truthguard
+python3 -m venv venv
+source venv/bin/activate       # Mac/Linux
+# venv\Scripts\activate        # Windows
+pip install -r requirements.txt</code></pre>
+
+<h2 class="sub">Step 2 — Configure API Keys</h2>
+<pre><code>cp .env.example .env
+# Edit .env — add your three values:
+GEMINI_API_KEY=your_gemini_key_here
+PINECONE_API_KEY=your_pinecone_key_here
+PINECONE_INDEX_NAME=truthguard</code></pre>
+
+<h2 class="sub">Step 3 — Run Ingestion (Crawl Stripe Docs)</h2>
+<pre><code>python3 ingestion/scrape_stripe.py</code></pre>
+<p>This will:</p>
+<ul>
+  <li>Auto-discover your available embedding model</li>
+  <li>Crawl up to 100 Stripe documentation pages</li>
+  <li>Embed each chunk and store it in Pinecone</li>
+  <li>Take 15–30 minutes (respects API rate limits)</li>
+</ul>
+
+<h2 class="sub">Step 4 — Start the Server</h2>
+<pre><code>uvicorn api.main:app --port 8000</code></pre>
+<p>On startup you should see:</p>
+<pre><code>  Embedding model: models/gemini-embedding-001
+  LLM model:       models/gemini-2.5-flash
+INFO:     Application startup complete.</code></pre>
+
+<h2 class="sub">Step 5 — Open the App</h2>
+<p>Go to <strong>http://localhost:8000</strong> in your browser. Try asking:</p>
+<ul>
+  <li>"How do I create a PaymentIntent?"</li>
+  <li>"What events does Stripe send for failed payments?"</li>
+  <li>"How does Stripe Connect work?"</li>
+  <li>"How do I verify webhook signatures?"</li>
+</ul>
+
+<div class="callout amber">
+  <div class="callout-label">Important</div>
+  Always activate the virtual environment (<code>source venv/bin/activate</code>) before running any command. Run uvicorn <strong>without</strong> <code>--reload</code> — on macOS the reload subprocess can fail DNS lookups for external APIs.
+</div>
+
+<div class="callout red">
+  <div class="callout-label">API Key Security</div>
+  Never commit <code>.env</code> to git. Never share API keys in chat messages, screenshots, or error logs. If a key is accidentally exposed, regenerate it immediately at the provider's dashboard.
+</div>
+
+<!-- ════════════════ FOOTER ════════════════ -->
+<div style="margin-top:64px; border-top:2px solid #4f46e5; padding-top:20px; text-align:center; color:#888; font-size:9pt;">
+  <strong style="color:#4f46e5;">TruthGuard AI</strong> &nbsp;·&nbsp; Complete Technical Guide &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; May 2026<br>
+  <span style="font-size:8.5pt;">LLMs · Embeddings · RAG · LangChain · LangGraph · AI Agents · Pinecone · Gemini · FastAPI</span>
+</div>
+
+</div><!-- /page -->
+</body>
+</html>

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TruthGuard AI — Technical Documentation</title>
+<style>
+  /* ── Print + screen base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; font-size: 11pt; color: #1a1a2e; line-height: 1.75; background: #fff; }
+
+  /* ── Page layout ── */
+  .page { max-width: 900px; margin: 0 auto; padding: 48px 60px; }
+  @media print {
+    .page { padding: 0; max-width: 100%; }
+    .page-break { page-break-before: always; }
+    .no-break { page-break-inside: avoid; }
+  }
+
+  /* ── Cover page ── */
+  .cover { text-align: center; padding: 80px 0 60px; border-bottom: 3px solid #4f46e5; margin-bottom: 48px; }
+  .cover-badge { display: inline-block; background: #4f46e5; color: #fff; padding: 6px 18px; border-radius: 99px; font-size: 9pt; font-family: 'Courier New', monospace; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 24px; }
+  .cover h1 { font-size: 32pt; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+  .cover h1 span { color: #4f46e5; }
+  .cover-sub { font-size: 14pt; color: #555; margin-bottom: 36px; font-style: italic; }
+  .cover-meta { display: flex; justify-content: center; gap: 48px; font-size: 9.5pt; color: #666; }
+  .cover-meta div { text-align: center; }
+  .cover-meta strong { display: block; color: #1a1a2e; font-size: 10.5pt; }
+
+  /* ── TOC ── */
+  .toc { background: #f8f9ff; border: 1px solid #e0e0f0; border-radius: 8px; padding: 28px 36px; margin-bottom: 48px; }
+  .toc h2 { font-size: 12pt; color: #4f46e5; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 16px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { padding: 3px 0; font-size: 10.5pt; }
+  .toc a { color: #1a1a2e; text-decoration: none; }
+  .toc a:hover { color: #4f46e5; text-decoration: underline; }
+  .toc .sub { padding-left: 20px; font-size: 10pt; color: #555; list-style: none; }
+  .toc .sub li::before { content: "— "; }
+
+  /* ── Section headings ── */
+  h1.section { font-size: 18pt; color: #1a1a2e; border-bottom: 2px solid #4f46e5; padding-bottom: 8px; margin: 48px 0 20px; }
+  h2.sub-section { font-size: 13pt; color: #4f46e5; margin: 28px 0 12px; }
+  h3.sub-sub { font-size: 11.5pt; color: #1a1a2e; font-style: italic; margin: 20px 0 8px; }
+
+  /* ── Body text ── */
+  p { margin-bottom: 14px; }
+  ul, ol { margin: 10px 0 14px 22px; }
+  li { margin-bottom: 5px; }
+  strong { color: #1a1a2e; }
+
+  /* ── Code ── */
+  pre { background: #0d1117; color: #e6edf3; padding: 18px 20px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 9pt; overflow-x: auto; margin: 16px 0; line-height: 1.6; }
+  code { font-family: 'Courier New', monospace; font-size: 9.5pt; background: #f0f0ff; color: #4f46e5; padding: 1px 5px; border-radius: 3px; }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  /* ── Architecture boxes ── */
+  .arch-box { background: #0d1117; color: #58a6ff; padding: 20px 24px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 8.5pt; line-height: 1.6; overflow-x: auto; margin: 16px 0; white-space: pre; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 10pt; }
+  th { background: #4f46e5; color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e8e8f0; }
+  tr:nth-child(even) td { background: #f8f9ff; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── Callout boxes ── */
+  .callout { border-left: 4px solid #4f46e5; background: #f4f4ff; padding: 14px 18px; margin: 16px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .callout.green { border-color: #22c55e; background: #f0fdf4; }
+  .callout.amber { border-color: #f59e0b; background: #fffbeb; }
+  .callout.red   { border-color: #ef4444; background: #fef2f2; }
+  .callout-title { font-weight: 700; margin-bottom: 4px; }
+
+  /* ── Badge ── */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  .badge-blue   { background: #e0e7ff; color: #4f46e5; }
+  .badge-green  { background: #dcfce7; color: #16a34a; }
+  .badge-amber  { background: #fef9c3; color: #a16207; }
+  .badge-red    { background: #fee2e2; color: #b91c1c; }
+
+  /* ── Flow boxes ── */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: 16px 0; }
+  .flow-node { background: #4f46e5; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 9.5pt; font-weight: 600; }
+  .flow-arrow { color: #4f46e5; font-size: 14pt; font-weight: bold; }
+  .flow-node.green  { background: #16a34a; }
+  .flow-node.amber  { background: #d97706; }
+  .flow-node.red    { background: #dc2626; }
+  .flow-node.gray   { background: #6b7280; }
+
+  /* ── Page number footer ── */
+  @media print {
+    @page { margin: 20mm 18mm; }
+    footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 8pt; color: #999; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ══════════════════════════════════════════════════════════ COVER -->
+<div class="cover">
+  <div class="cover-badge">Technical Documentation · v1.0</div>
+  <h1><span>TruthGuard</span> AI</h1>
+  <div class="cover-sub">RAG-Powered Stripe Documentation Assistant<br>with Multi-Agent Hallucination Detection</div>
+  <div class="cover-meta">
+    <div><strong>Stack</strong>LangGraph · LangChain · Gemini · Pinecone · FastAPI</div>
+    <div><strong>Pattern</strong>RAG + Multi-Agent Verification</div>
+    <div><strong>Date</strong>May 2026</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ TOC -->
+<div class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#overview">Project Overview</a></li>
+    <li><a href="#architecture">System Architecture</a></li>
+    <li><a href="#stack">Technology Stack</a></li>
+    <li><a href="#ingestion">Data Ingestion Pipeline</a>
+      <ul class="sub">
+        <li>Web Scraping Strategy</li>
+        <li>Chunking Algorithm</li>
+        <li>Embedding &amp; Vector Storage</li>
+      </ul>
+    </li>
+    <li><a href="#langgraph">LangGraph Multi-Agent Pipeline</a>
+      <ul class="sub">
+        <li>State Design</li>
+        <li>Node 1 — Retrieve</li>
+        <li>Node 2 — Generate</li>
+        <li>Node 3 — Fact Check (Layer 1)</li>
+        <li>Node 4 — Consistency Guard (Layer 2)</li>
+        <li>Node 5 — Compile</li>
+      </ul>
+    </li>
+    <li><a href="#hallucination">Hallucination Detection Deep Dive</a>
+      <ul class="sub">
+        <li>Why Two Layers?</li>
+        <li>Claim Extraction &amp; Verdict Logic</li>
+        <li>Scoring Model</li>
+        <li>Trust Labels</li>
+      </ul>
+    </li>
+    <li><a href="#discovery">Model Discovery &amp; Resilience</a></li>
+    <li><a href="#api">API Reference</a></li>
+    <li><a href="#frontend">Frontend Architecture</a></li>
+    <li><a href="#setup">Setup &amp; Deployment Guide</a></li>
+    <li><a href="#structure">Project File Structure</a></li>
+  </ol>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ 1. OVERVIEW -->
+<div class="page-break"></div>
+<h1 class="section" id="overview">1 · Project Overview</h1>
+
+<p>TruthGuard AI is a Retrieval-Augmented Generation (RAG) question-answering system built on top of Stripe's official documentation. Unlike a plain RAG chatbot, every answer it produces is automatically audited by a two-layer multi-agent verification pipeline that detects hallucinations, unsupported claims, and contradictions before the answer reaches the user.</p>
+
+<p>The system was designed around a single core problem: <strong>language models lie confidently</strong>. Even when given accurate source documents, a model can blend facts, invent API parameters, or extrapolate beyond what the context actually says. TruthGuard AI treats this as a first-class concern and quantifies it with an explicit hallucination score (0–100) on every response.</p>
+
+<h2 class="sub-section">Key Capabilities</h2>
+<ul>
+  <li>Answers any question about Stripe payments, billing, webhooks, Connect, and the Stripe API — strictly from crawled Stripe documentation.</li>
+  <li>Runs every answer through a <strong>Layer 1 Fact Checker</strong> that labels each claim as SUPPORTED, UNSUPPORTED, or CONTRADICTED.</li>
+  <li>Passes those verdicts to a <strong>Layer 2 Consistency Guard</strong> that assigns a numerical hallucination risk score and a TRUSTED / SUSPICIOUS / HALLUCINATED label.</li>
+  <li>Returns all of this — answer, sources, per-claim verdicts, and the trust score — in a single JSON response rendered in a polished dark-themed chat UI.</li>
+</ul>
+
+<div class="callout green">
+  <div class="callout-title">Design Principle</div>
+  The system never trusts its own output. Every answer is treated as a hypothesis to be verified against the source documents it was generated from.
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ 2. ARCHITECTURE -->
+<h1 class="section" id="architecture">2 · System Architecture</h1>
+
+<div class="arch-box">
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          USER / BROWSER                                  │
+│                  Dark chat UI  ·  POST /ask  ·  GET /                   │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │  { "question": "..." }
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    FastAPI  (api/main.py)                                │
+│                FileResponse for HTML · /ask · /health                   │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │  run_pipeline(query)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│              LangGraph  StateGraph  (graph/pipeline.py)                  │
+│                                                                          │
+│  ┌──────────┐   ┌──────────┐   ┌──────────────┐   ┌────────────────┐  │
+│  │  Node 1  │   │  Node 2  │   │    Node 3    │   │    Node 4      │  │
+│  │ RETRIEVE │──▶│ GENERATE │──▶│ FACT_CHECK   │──▶│ CONSISTENCY    │  │
+│  │          │   │          │   │  (Agent L1)  │   │  _GUARD (L2)   │  │
+│  └────┬─────┘   └────┬─────┘   └──────────────┘   └───────┬────────┘  │
+│       │              │                                      │           │
+│  Pinecone DB    Gemini LLM                            Gemini LLM        │
+│  top-5 RAG      (REST API)                            (REST API)        │
+│       │                                                      │           │
+│  Gemini Embed                                    ┌───────────▼────────┐ │
+│  (REST API)                                      │      Node 5        │ │
+│                                                  │     COMPILE        │ │
+│                                                  └───────────┬────────┘ │
+└──────────────────────────────────────────────────────────────┼──────────┘
+                                                               │
+                                              ┌────────────────▼──────────────────┐
+                                              │  {answer, sources, fact_check,     │
+                                              │   consistency, hallucination_score}│
+                                              └────────────────────────────────────┘
+</div>
+
+<p>The architecture separates concerns into four layers:</p>
+<ol>
+  <li><strong>Presentation</strong> — FastAPI serves the HTML UI and exposes a single <code>POST /ask</code> endpoint.</li>
+  <li><strong>Orchestration</strong> — LangGraph's <code>StateGraph</code> wires five nodes in a directed acyclic graph, passing a shared typed state object between them.</li>
+  <li><strong>Intelligence</strong> — Three independent Gemini LLM calls (generate, fact-check, consistency-guard) and one embedding call (retrieve) via direct REST.</li>
+  <li><strong>Storage</strong> — Pinecone Serverless holds the 3072-dimensional vector embeddings of all crawled Stripe documentation chunks.</li>
+</ol>
+
+<!-- ══════════════════════════════════════════════════════════ 3. STACK -->
+<div class="page-break"></div>
+<h1 class="section" id="stack">3 · Technology Stack</h1>
+
+<table>
+  <tr><th>Layer</th><th>Technology</th><th>Role</th></tr>
+  <tr><td>LLM</td><td>Gemini 2.5 Flash / 2.0 Flash (auto-detected)</td><td>Answer generation, fact checking, consistency grading</td></tr>
+  <tr><td>Embeddings</td><td>Gemini Embedding 001 (auto-detected, 3072-dim)</td><td>Encode doc chunks and queries into vectors</td></tr>
+  <tr><td>Vector DB</td><td>Pinecone Serverless (cosine similarity)</td><td>Store and search embedded doc chunks</td></tr>
+  <tr><td>Pipeline</td><td>LangGraph <code>StateGraph</code></td><td>Directed graph of 5 agent nodes with shared typed state</td></tr>
+  <tr><td>LLM Framework</td><td>LangChain Core (prompts, parsers)</td><td>Prompt templates, output parsing</td></tr>
+  <tr><td>API Server</td><td>FastAPI + Uvicorn</td><td>HTTP server, async request handling</td></tr>
+  <tr><td>Scraping</td><td>requests + BeautifulSoup4</td><td>Crawl and extract Stripe doc pages</td></tr>
+  <tr><td>Frontend</td><td>Vanilla HTML/CSS/JS</td><td>Dark-theme chat UI with trust badge and score bar</td></tr>
+  <tr><td>Config</td><td>python-dotenv</td><td>Load API keys from <code>.env</code></td></tr>
+  <tr><td>Runtime</td><td>Python 3.12+</td><td>All components</td></tr>
+</table>
+
+<div class="callout">
+  <div class="callout-title">No LangChain LLM wrapper</div>
+  The original design used <code>langchain-google-genai.ChatGoogleGenerativeAI</code>. Due to API version routing issues (the SDK defaulting to <code>v1beta</code> endpoints where models are not always registered), all LLM calls were migrated to direct REST calls via <code>requests</code>. LangChain is still used for prompt templates and output parsing in the graph nodes, but the actual model invocation bypasses the SDK layer.
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ 4. INGESTION -->
+<h1 class="section" id="ingestion">4 · Data Ingestion Pipeline</h1>
+<p>The ingestion pipeline (<code>ingestion/scrape_stripe.py</code>) is a one-time (or periodic) batch job that populates the Pinecone vector database with Stripe documentation content.</p>
+
+<h2 class="sub-section">4.1 Web Scraping Strategy</h2>
+<p>The crawler starts from five seed URLs covering the main Stripe documentation areas:</p>
+<pre><code>https://stripe.com/docs/payments
+https://stripe.com/docs/api
+https://stripe.com/docs/webhooks
+https://stripe.com/docs/billing
+https://stripe.com/docs/connect</code></pre>
+
+<p>For each page it visits:</p>
+<ol>
+  <li>Fetches the page with a realistic <code>User-Agent</code> header and a 1-second politeness delay.</li>
+  <li>Removes all <code>&lt;nav&gt;</code>, <code>&lt;footer&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;style&gt;</code>, <code>&lt;header&gt;</code>, and <code>&lt;aside&gt;</code> elements — keeping only the main documentation content.</li>
+  <li>Extracts all <code>&lt;a href&gt;</code> links pointing to <code>stripe.com/docs/*</code> without query parameters or anchors, and adds them to the visit queue.</li>
+  <li>Respects a hard cap of <strong>100 pages</strong> to avoid unbounded crawling.</li>
+  <li>Tracks visited URLs to prevent duplicates.</li>
+</ol>
+
+<h2 class="sub-section">4.2 Chunking Algorithm</h2>
+<p>Raw page text is split into overlapping chunks to preserve context across chunk boundaries:</p>
+
+<table>
+  <tr><th>Parameter</th><th>Value</th><th>Rationale</th></tr>
+  <tr><td>Chunk size</td><td>500 characters</td><td>Fits comfortably within embedding model's token limit; small enough for precise retrieval</td></tr>
+  <tr><td>Overlap</td><td>100 characters</td><td>Prevents sentence/concept truncation at boundaries</td></tr>
+  <tr><td>Min length</td><td>50 characters</td><td>Filters out navigation fragments and empty sections</td></tr>
+</table>
+
+<p>Chunks are created with a sliding window:</p>
+<pre><code>start = 0
+while start < len(text):
+    end = start + CHUNK_SIZE          # 500
+    chunks.append(text[start:end])
+    start += CHUNK_SIZE - CHUNK_OVERLAP  # advance by 400</code></pre>
+
+<h2 class="sub-section">4.3 Embedding and Vector Storage</h2>
+<p>Each chunk is embedded using the Gemini Embedding model via the <code>embedContent</code> REST endpoint. Each vector is stored in Pinecone with the following metadata:</p>
+
+<table>
+  <tr><th>Metadata Field</th><th>Contents</th></tr>
+  <tr><td><code>url</code></td><td>Source page URL (used as citation in answers)</td></tr>
+  <tr><td><code>page_title</code></td><td>HTML <code>&lt;title&gt;</code> of the page</td></tr>
+  <tr><td><code>chunk_index</code></td><td>Position of this chunk within the page</td></tr>
+  <tr><td><code>text</code></td><td>Raw chunk text (returned alongside search results)</td></tr>
+</table>
+
+<p>Vector IDs are computed as <code>MD5(url + "||" + chunk_index)</code>, making upserts idempotent — re-running the scraper on the same pages overwrites existing vectors without duplication.</p>
+
+<div class="callout amber">
+  <div class="callout-title">Rate Limiting</div>
+  The Gemini Embedding free tier allows 100 requests per minute. The ingestion script enforces a 0.7-second inter-call delay (≈ 85 calls/min) and retries 429 responses with exponential backoff: 15 s → 30 s → 60 s → 120 s → 240 s → 480 s.
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ 5. LANGGRAPH -->
+<div class="page-break"></div>
+<h1 class="section" id="langgraph">5 · LangGraph Multi-Agent Pipeline</h1>
+
+<p>The query pipeline is implemented as a LangGraph <code>StateGraph</code> — a directed graph where nodes are Python functions and edges define the execution order. LangGraph manages state passing, node execution, and graph traversal.</p>
+
+<h2 class="sub-section">5.1 State Design</h2>
+<p>All nodes share a single typed state dictionary defined as a <code>TypedDict</code>:</p>
+
+<pre><code>class PipelineState(TypedDict):
+    query:              str    # original user question
+    context:            str    # retrieved doc chunks as a formatted string
+    sources:            list   # [{url, title}] for citation
+    answer:             str    # LLM-generated answer
+    fact_check_result:  dict   # Layer 1 agent output
+    consistency_result: dict   # Layer 2 agent output
+    final_output:       dict   # assembled response returned to API</code></pre>
+
+<p>LangGraph passes the full state to each node. Nodes return only the keys they modified (partial updates), which LangGraph merges back into the shared state before calling the next node.</p>
+
+<h2 class="sub-section">5.2 Graph Topology</h2>
+
+<div class="flow">
+  <div class="flow-node">RETRIEVE</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node">GENERATE</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node amber">FACT CHECK</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node red">CONSISTENCY GUARD</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node green">COMPILE</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node gray">END</div>
+</div>
+
+<pre><code>graph = StateGraph(PipelineState)
+graph.add_node("retrieve",          retrieve_node)
+graph.add_node("generate",          generate_node)
+graph.add_node("fact_check",        fact_check_node)
+graph.add_node("consistency_guard", consistency_guard_node)
+graph.add_node("compile",           compile_node)
+
+graph.set_entry_point("retrieve")
+graph.add_edge("retrieve",          "generate")
+graph.add_edge("generate",          "fact_check")
+graph.add_edge("fact_check",        "consistency_guard")
+graph.add_edge("consistency_guard", "compile")
+graph.add_edge("compile",           END)</code></pre>
+
+<h2 class="sub-section">5.3 Node 1 — Retrieve (<code>rag/retriever.py</code>)</h2>
+
+<p><strong>Input:</strong> <code>query</code> string<br>
+<strong>Output:</strong> <code>context</code> (formatted string), <code>sources</code> (list of URLs)</p>
+
+<p>The retrieval node converts the user's question into a 3072-dimensional vector using the Gemini Embedding REST API with task type <code>RETRIEVAL_QUERY</code>, then queries Pinecone for the top-5 most similar document chunks by cosine similarity.</p>
+
+<p>The resulting chunks are formatted as:</p>
+<pre><code>[Source: https://stripe.com/docs/webhooks | Stripe Webhooks]
+When a webhook event occurs, Stripe sends an HTTP POST request ...
+
+---
+
+[Source: https://stripe.com/docs/api | Stripe API Reference]
+Webhook endpoints must be able to handle POST requests ...</code></pre>
+
+<p>This formatted context string is what gets injected into the LLM prompt in Node 2.</p>
+
+<h2 class="sub-section">5.4 Node 2 — Generate (<code>rag/generator.py</code>)</h2>
+
+<p><strong>Input:</strong> <code>context</code>, <code>query</code><br>
+<strong>Output:</strong> <code>answer</code> string</p>
+
+<p>The generator constructs a two-part prompt:</p>
+
+<pre><code>SYSTEM: You are TruthGuard AI, a precise assistant for Stripe's official
+documentation. Answer ONLY from the provided context — never from general
+knowledge. If the context is insufficient, say so explicitly. Never
+fabricate API endpoints, parameters, or pricing details.
+
+USER:  Context from Stripe documentation:
+       {context}
+
+       Question: {query}
+
+       Answer strictly from the context above:</code></pre>
+
+<p>The <code>temperature</code> is set to <code>0.1</code> to bias toward factual, deterministic output while allowing some natural language variation.</p>
+
+<div class="callout">
+  <div class="callout-title">Strict Grounding Instruction</div>
+  The system prompt's "never from general knowledge" clause is intentional. Without it, Gemini draws on its training data to fill gaps in the retrieved context — which is precisely the behaviour we want to detect, not encourage.
+</div>
+
+<h2 class="sub-section">5.5 Node 3 — Fact Check / Layer 1 Agent (<code>agents/fact_checker.py</code>)</h2>
+
+<p><strong>Input:</strong> <code>answer</code>, <code>context</code><br>
+<strong>Output:</strong> <code>fact_check_result</code> dict</p>
+
+<p>This agent receives the generated answer and the source context and is instructed to extract every distinct factual claim from the answer and verify each one independently against the context. It returns structured JSON:</p>
+
+<pre><code>{
+  "claims": [
+    {
+      "claim": "Webhooks must be verified using the Stripe-Signature header",
+      "verdict": "SUPPORTED",
+      "reason": "Context explicitly states: use the stripe.webhooks.constructEvent method with the Stripe-Signature header."
+    },
+    {
+      "claim": "Stripe sends webhooks within 500 milliseconds",
+      "verdict": "UNSUPPORTED",
+      "reason": "No timing information found in the retrieved context."
+    }
+  ],
+  "overall_verdict": "FAIL",
+  "summary": "One of two claims lacks documentation support. ..."
+}</code></pre>
+
+<p>Verdict definitions:</p>
+<table>
+  <tr><th>Verdict</th><th>Meaning</th></tr>
+  <tr><td><span class="badge badge-green">SUPPORTED</span></td><td>Claim is directly and clearly backed by the retrieved context</td></tr>
+  <tr><td><span class="badge badge-amber">UNSUPPORTED</span></td><td>Claim is not addressed in the context (may or may not be true in reality)</td></tr>
+  <tr><td><span class="badge badge-red">CONTRADICTED</span></td><td>Claim explicitly contradicts what the context states</td></tr>
+</table>
+
+<p><code>overall_verdict</code> is <strong>PASS</strong> only when <em>every</em> claim is SUPPORTED.</p>
+<p>The temperature for this agent is <code>0</code> — maximum determinism for consistent verdicts.</p>
+
+<h2 class="sub-section">5.6 Node 4 — Consistency Guard / Layer 2 Agent (<code>agents/consistency_guard.py</code>)</h2>
+
+<p><strong>Input:</strong> <code>query</code>, <code>answer</code>, <code>fact_check_result</code>, <code>context</code><br>
+<strong>Output:</strong> <code>consistency_result</code> dict</p>
+
+<p>The consistency guard performs a second-layer audit. It receives the full Layer 1 output (claim verdicts) plus the original answer and context, and makes a holistic judgement about hallucination risk. It also looks for issues the claim-by-claim approach misses:</p>
+
+<ul>
+  <li>Internal inconsistencies within the answer itself</li>
+  <li>Answers that technically cite supported facts but mislead through selective framing</li>
+  <li>Scope violations — answering beyond what was asked using fabricated details</li>
+  <li>Overconfident phrasing when context is thin</li>
+</ul>
+
+<p>Output format:</p>
+<pre><code>{
+  "hallucination_score": 23,
+  "label": "SUSPICIOUS",
+  "final_summary": "The answer is mostly accurate but includes one timing claim not present in the retrieved documentation. The core explanation of webhook verification is well-supported.",
+  "additional_flags": ["unverified_timing_claim"]
+}</code></pre>
+
+<h2 class="sub-section">5.7 Node 5 — Compile (<code>graph/pipeline.py</code>)</h2>
+
+<p><strong>Input:</strong> all accumulated state fields<br>
+<strong>Output:</strong> <code>final_output</code> dict</p>
+
+<p>The compile node assembles all previous outputs into the final response dictionary that the FastAPI endpoint returns as JSON:</p>
+
+<pre><code>{
+  "query":    "How do I verify a Stripe webhook?",
+  "answer":   "...",
+  "sources":  [{"url": "...", "title": "..."}],
+  "fact_check": { "claims": [...], "overall_verdict": "FAIL", "summary": "..." },
+  "consistency": { "hallucination_score": 23, "label": "SUSPICIOUS", ... }
+}</code></pre>
+
+<!-- ══════════════════════════════════════════════════════════ 6. HALLUCINATION -->
+<div class="page-break"></div>
+<h1 class="section" id="hallucination">6 · Hallucination Detection Deep Dive</h1>
+
+<h2 class="sub-section">6.1 Why Two Layers?</h2>
+
+<p>A single agent can verify claims in isolation but cannot reason about the <em>overall character</em> of an answer. Two independent passes address different failure modes:</p>
+
+<table>
+  <tr><th>Layer</th><th>What it catches</th><th>What it misses</th></tr>
+  <tr><td>Layer 1 — Fact Checker</td><td>Individual claims unsupported or contradicted by the context</td><td>Subtle framing issues, selective omission, cumulative overreach</td></tr>
+  <tr><td>Layer 2 — Consistency Guard</td><td>Holistic risk assessment, internal inconsistency, scope violations, overconfident tone</td><td>Detailed per-claim evidence (relies on Layer 1 for that)</td></tr>
+</table>
+
+<p>The two-agent design is a deliberate tradeoff: Layer 1 provides granular, auditable evidence; Layer 2 provides a summary judgement that integrates both the claim verdicts and its own independent reading of the context.</p>
+
+<h2 class="sub-section">6.2 Claim Extraction Logic</h2>
+
+<p>The Layer 1 agent is instructed to extract <em>atomic factual claims</em> — the smallest unit of verifiable assertion. For example, the answer sentence:</p>
+
+<blockquote style="border-left:3px solid #ccc; padding-left:14px; color:#555; margin:12px 0;">
+"You can verify webhooks using Stripe's <code>constructEvent</code> method, which checks the <code>Stripe-Signature</code> header and requires your webhook signing secret."
+</blockquote>
+
+<p>…would be decomposed into three separate claims, each verified independently:</p>
+<ol>
+  <li>Webhook verification uses <code>constructEvent</code></li>
+  <li><code>constructEvent</code> checks the <code>Stripe-Signature</code> header</li>
+  <li><code>constructEvent</code> requires a webhook signing secret</li>
+</ol>
+
+<p>The strictness rule is important: if the context only <em>partially</em> addresses a claim (e.g., mentions constructEvent but not the signing secret), the claim is marked UNSUPPORTED rather than SUPPORTED. This conservatism biases the system toward flagging uncertainty rather than suppressing it.</p>
+
+<h2 class="sub-section">6.3 Hallucination Score</h2>
+
+<p>The Layer 2 agent assigns a score from 0 to 100 based on a holistic reading:</p>
+
+<table>
+  <tr><th>Score Range</th><th>Label</th><th>Interpretation</th></tr>
+  <tr><td>0 – 20</td><td><span class="badge badge-green">TRUSTED</span></td><td>All or nearly all claims supported; answer stays within context scope; appropriate hedging where needed</td></tr>
+  <tr><td>21 – 50</td><td><span class="badge badge-amber">SUSPICIOUS</span></td><td>Some unsupported claims; answer may go slightly beyond context; warrants user caution</td></tr>
+  <tr><td>51 – 100</td><td><span class="badge badge-red">HALLUCINATED</span></td><td>Significant fabrications, direct contradictions, or answer far exceeds what context supports</td></tr>
+</table>
+
+<p>The score is informed by but not mechanically derived from the Layer 1 claim counts. The Layer 2 agent also weighs the <em>importance</em> of unsupported claims (a fabricated API endpoint is more dangerous than an unsupported stylistic assertion), internal coherence, and whether the answer appropriately communicates uncertainty.</p>
+
+<h2 class="sub-section">6.4 JSON Output Parsing</h2>
+
+<p>Both agents are prompted to return <em>only</em> a valid JSON object. The parser (<code>_parse_json</code>) applies three-stage recovery:</p>
+<ol>
+  <li>Strip leading/trailing markdown code fences (<code>```json ... ```</code>) which models sometimes add despite instructions.</li>
+  <li>Attempt direct <code>json.loads()</code>.</li>
+  <li>On failure, use a regex to extract the first <code>{...}</code> block from the raw output and retry parsing.</li>
+  <li>On final failure, return a safe default object (FAIL / SUSPICIOUS) with the raw output embedded in the summary field for debugging.</li>
+</ol>
+
+<!-- ══════════════════════════════════════════════════════════ 7. MODEL DISCOVERY -->
+<div class="page-break"></div>
+<h1 class="section" id="discovery">7 · Model Discovery &amp; Resilience</h1>
+
+<p>A key operational challenge was that Google's embedding and LLM models have different names available per API key and API version. Rather than hardcoding model names that may not exist, both the embedding and LLM subsystems auto-discover the correct model at startup.</p>
+
+<h2 class="sub-section">7.1 Embedding Model Discovery</h2>
+
+<p>On startup (and on the first embedding call), <code>rag/retriever.py</code> calls <code>GET /v1beta/models</code> and filters for models with <code>"embedContent"</code> in their <code>supportedGenerationMethods</code>. It then selects from a preference list:</p>
+
+<pre><code>_PREFERRED_EMBED = [
+    "models/text-embedding-004",           # preferred
+    "models/text-multilingual-embedding-002",
+    "models/embedding-001",
+]</code></pre>
+
+<p>If none of the preferred models are available, it uses the first <code>embedContent</code>-capable model returned by the API (in this deployment: <code>models/gemini-embedding-001</code> producing 3072-dimensional vectors).</p>
+
+<h2 class="sub-section">7.2 LLM Model Discovery</h2>
+
+<p>The same pattern is applied in <code>rag/llm_client.py</code> for <code>generateContent</code> models:</p>
+
+<pre><code>_PREFERRED_LLM = [
+    "models/gemini-2.5-flash",    # best free-tier quality
+    "models/gemini-2.0-flash",    # fast, stable fallback
+    "models/gemini-2.0-flash-lite",
+    "models/gemini-flash-latest",
+    "models/gemini-2.5-pro",
+]</code></pre>
+
+<h2 class="sub-section">7.3 503 Overload Fallback</h2>
+
+<p>When a model returns HTTP 503 (overloaded), the system does not fail the request. Instead:</p>
+
+<ol>
+  <li>The overloaded model is added to a session-scoped <code>_overloaded: set[str]</code>.</li>
+  <li>The active model cache is cleared.</li>
+  <li><code>get_llm_model()</code> re-runs and skips any overloaded model, returning the next preference.</li>
+  <li>The call is retried with the new model (max 4 attempts).</li>
+  <li>If all models are overloaded, the set is cleared and discovery starts over.</li>
+</ol>
+
+<h2 class="sub-section">7.4 Rate Limit Handling (429)</h2>
+
+<p>Both the embedding scraper and the LLM client handle HTTP 429 with exponential backoff:</p>
+<ul>
+  <li><strong>Embedding (scraper):</strong> 15 s → 30 s → 60 s → 120 s → 240 s → 480 s (6 attempts)</li>
+  <li><strong>LLM (call_llm):</strong> 30 s → 60 s → 120 s (3 attempts, then error)</li>
+</ul>
+
+<h2 class="sub-section">7.5 Pinecone Index Dimension Auto-Correction</h2>
+
+<p>The embedding dimension (3072 for <code>gemini-embedding-001</code>, 768 for older models) is detected at ingestion time by measuring the actual vector returned from the probe call. If an existing Pinecone index has a different dimension, it is automatically deleted and recreated:</p>
+
+<pre><code>info = pc.describe_index(PINECONE_INDEX_NAME)
+if info.dimension != embed_dim:
+    pc.delete_index(PINECONE_INDEX_NAME)
+    pc.create_index(name=PINECONE_INDEX_NAME, dimension=embed_dim, ...)</code></pre>
+
+<!-- ══════════════════════════════════════════════════════════ 8. API -->
+<h1 class="section" id="api">8 · API Reference</h1>
+
+<h2 class="sub-section">GET /</h2>
+<p>Returns the HTML chat UI as a <code>FileResponse</code>. No parameters.</p>
+
+<h2 class="sub-section">POST /ask</h2>
+
+<p><strong>Request body (JSON):</strong></p>
+<pre><code>{ "question": "How do I create a PaymentIntent?" }</code></pre>
+
+<p><strong>Constraints:</strong> question must be non-empty and ≤ 1000 characters.</p>
+
+<p><strong>Response (JSON):</strong></p>
+<pre><code>{
+  "query": "How do I create a PaymentIntent?",
+  "answer": "To create a PaymentIntent, send a POST request to /v1/payment_intents ...",
+  "sources": [
+    { "url": "https://stripe.com/docs/payments/accept-a-payment", "title": "Accept a payment" }
+  ],
+  "fact_check": {
+    "claims": [
+      { "claim": "...", "verdict": "SUPPORTED", "reason": "..." }
+    ],
+    "overall_verdict": "PASS",
+    "summary": "All claims directly supported by retrieved documentation."
+  },
+  "consistency": {
+    "hallucination_score": 8,
+    "label": "TRUSTED",
+    "final_summary": "The answer is accurate and stays within context scope.",
+    "additional_flags": []
+  }
+}</code></pre>
+
+<p><strong>Error responses:</strong></p>
+<table>
+  <tr><th>Status</th><th>Condition</th></tr>
+  <tr><td>400</td><td>Empty question or question exceeds 1000 characters</td></tr>
+  <tr><td>500</td><td>Pipeline error (API unavailable, Pinecone down, parse failure)</td></tr>
+</table>
+
+<h2 class="sub-section">GET /health</h2>
+<p>Returns <code>{"status": "ok"}</code>. Used for uptime monitoring.</p>
+
+<!-- ══════════════════════════════════════════════════════════ 9. FRONTEND -->
+<div class="page-break"></div>
+<h1 class="section" id="frontend">9 · Frontend Architecture</h1>
+
+<p>The frontend is a single self-contained HTML file (<code>api/templates/index.html</code>) with no external dependencies. It communicates with the FastAPI backend via a single <code>fetch()</code> call to <code>POST /ask</code>.</p>
+
+<h2 class="sub-section">9.1 Component Structure</h2>
+<ul>
+  <li><strong>Header bar</strong> — branding, live status pill</li>
+  <li><strong>Chat scroll area</strong> — message bubbles, welcome screen with suggestion chips</li>
+  <li><strong>Bot response card</strong> — answer bubble + Trust Card</li>
+  <li><strong>Trust Card</strong> — badge (TRUSTED/SUSPICIOUS/HALLUCINATED), animated score bar, expandable claims section, expandable sources list</li>
+  <li><strong>Input area</strong> — auto-resizing textarea, send button, keyboard shortcut hint</li>
+</ul>
+
+<h2 class="sub-section">9.2 Trust Score Animation</h2>
+<p>When a response arrives, the hallucination score animates from 0 to its final value over ~1 second using <code>setInterval</code>, and the score bar fills via a CSS <code>transition: width 1.1s cubic-bezier()</code>. The colour of both the bar and the numeric counter is driven by the <code>label</code> field: green for TRUSTED, amber for SUSPICIOUS, red for HALLUCINATED.</p>
+
+<h2 class="sub-section">9.3 Typing Indicator</h2>
+<p>While awaiting the pipeline response (which takes 5–15 seconds due to three sequential LLM calls), the UI shows a three-dot bouncing animation inserted as a DOM node, then removed when the response arrives. This prevents the user from perceiving the system as frozen during LLM inference.</p>
+
+<!-- ══════════════════════════════════════════════════════════ 10. SETUP -->
+<h1 class="section" id="setup">10 · Setup &amp; Deployment Guide</h1>
+
+<h2 class="sub-section">Prerequisites</h2>
+<ul>
+  <li>Python 3.12 or higher</li>
+  <li>Gemini API key from <a href="https://aistudio.google.com/app/apikey">aistudio.google.com/app/apikey</a> (free)</li>
+  <li>Pinecone API key from <a href="https://app.pinecone.io">app.pinecone.io</a> (free Serverless tier)</li>
+</ul>
+
+<h2 class="sub-section">Installation</h2>
+<pre><code>git clone &lt;repo&gt;
+cd truthguard
+python3 -m venv venv
+source venv/bin/activate          # Windows: venv\Scripts\activate
+pip install -r requirements.txt</code></pre>
+
+<h2 class="sub-section">Configuration</h2>
+<pre><code>cp .env.example .env
+# Edit .env and set:
+GEMINI_API_KEY=your_key_here
+PINECONE_API_KEY=your_key_here
+PINECONE_INDEX_NAME=truthguard</code></pre>
+
+<h2 class="sub-section">Step 1 — Run Ingestion</h2>
+<pre><code>python3 ingestion/scrape_stripe.py</code></pre>
+<p>Expected output:</p>
+<pre><code>Probing embedding models...
+  Embedding model (auto-detected): models/gemini-embedding-001
+  Dimension: 3072  OK
+[1/100] Scraping https://stripe.com/docs/payments
+  Upserted 18 chunks (total: 18)
+...
+Ingestion complete. Pages: 100, Vectors: 1843</code></pre>
+<p>Re-runnable safely — vectors are upserted (not duplicated) by stable hash ID. Run multiple times to build up coverage without hitting the 100-page per-run cap.</p>
+
+<h2 class="sub-section">Step 2 — Start the Server</h2>
+<pre><code>uvicorn api.main:app --port 8000</code></pre>
+<p>Startup output confirms models:</p>
+<pre><code>  Embedding model: models/gemini-embedding-001
+  LLM model:       models/gemini-2.5-flash
+INFO:     Application startup complete.</code></pre>
+
+<p>Open <strong>http://localhost:8000</strong> in your browser.</p>
+
+<div class="callout amber">
+  <div class="callout-title">Important: Do not use --reload</div>
+  On macOS, uvicorn's <code>--reload</code> flag spawns a subprocess that can fail DNS resolution for external APIs. Use <code>uvicorn api.main:app --port 8000</code> without <code>--reload</code> in production. For development, always activate the virtual environment with <code>source venv/bin/activate</code> before running any command.
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ 11. STRUCTURE -->
+<div class="page-break"></div>
+<h1 class="section" id="structure">11 · Project File Structure</h1>
+
+<pre><code>truthguard/
+├── .env.example                    API key template
+├── requirements.txt                Python dependencies
+│
+├── config/
+│   └── settings.py                 Loads .env, exposes constants
+│
+├── ingestion/
+│   └── scrape_stripe.py            Crawl → chunk → embed → Pinecone
+│
+├── rag/
+│   ├── retriever.py                Embed query → Pinecone top-5 → context string
+│   ├── generator.py                Context + query → Gemini answer
+│   └── llm_client.py               Auto-discover LLM model · REST call · 503/429 retry
+│
+├── agents/
+│   ├── fact_checker.py             Layer 1: per-claim SUPPORTED/UNSUPPORTED/CONTRADICTED
+│   └── consistency_guard.py        Layer 2: hallucination_score + TRUSTED/SUSPICIOUS/HALLUCINATED
+│
+├── graph/
+│   └── pipeline.py                 LangGraph 5-node StateGraph
+│
+├── api/
+│   ├── main.py                     FastAPI GET / · POST /ask · /health · lifespan warmup
+│   └── templates/
+│       └── index.html              Dark chat UI (single file, no deps)
+│
+└── docs/
+    └── TruthGuard_AI_Documentation.html   ← this document</code></pre>
+
+<h2 class="sub-section">Key Dependencies</h2>
+<table>
+  <tr><th>Package</th><th>Used For</th></tr>
+  <tr><td><code>langgraph</code></td><td>StateGraph orchestration of the 5-node pipeline</td></tr>
+  <tr><td><code>langchain-core</code></td><td>Prompt templates (ChatPromptTemplate) — imported by LangGraph</td></tr>
+  <tr><td><code>google-genai</code></td><td>Transitive dependency of langchain-google-genai; not called directly</td></tr>
+  <tr><td><code>pinecone</code></td><td>Serverless vector database client</td></tr>
+  <tr><td><code>fastapi</code></td><td>HTTP server and routing</td></tr>
+  <tr><td><code>requests</code></td><td>All direct Gemini REST API calls (embedding + LLM)</td></tr>
+  <tr><td><code>beautifulsoup4</code></td><td>HTML parsing during Stripe doc scraping</td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════ FOOTER -->
+<div style="margin-top:60px; border-top:1px solid #e0e0f0; padding-top:20px; text-align:center; color:#888; font-size:9pt;">
+  TruthGuard AI — Technical Documentation &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; May 2026
+</div>
+
+</div><!-- /page -->
+</body>
+</html>
