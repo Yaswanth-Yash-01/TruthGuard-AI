@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TruthGuard Agent Portal</title>
+<style>
+  :root {
+    --bg: #09111d;
+    --bg2: #101a28;
+    --panel: #152235;
+    --border: #27384f;
+    --text: #e7edf5;
+    --muted: #97a6ba;
+    --blue: #6cb6ff;
+    --green: #4ac26b;
+    --amber: #f0b44d;
+    --red: #ff7b72;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at top right, rgba(108,182,255,.18), transparent 30%),
+      linear-gradient(180deg, #09111d 0%, #0d1726 100%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .title h1 {
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+  .title p {
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .status {
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(74,194,107,.25);
+    background: rgba(74,194,107,.1);
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 18px;
+  }
+  .sidebar, .workspace {
+    background: rgba(16,26,40,.86);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(10px);
+  }
+  .sidebar {
+    padding: 18px;
+  }
+  .workspace {
+    padding: 18px;
+    min-height: 620px;
+  }
+  .sidebar h2, .workspace h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .queue-count {
+    font-size: 34px;
+    font-weight: 800;
+    margin-bottom: 18px;
+  }
+  .task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .task-btn {
+    width: 100%;
+    text-align: left;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid transparent;
+    border-radius: 14px;
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color .2s, transform .12s;
+  }
+  .task-btn:hover, .task-btn.active {
+    border-color: var(--blue);
+    transform: translateY(-1px);
+  }
+  .task-btn small {
+    color: var(--muted);
+    display: block;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .empty {
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .mini-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .mini-card span {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 8px;
+  }
+  .mini-card strong {
+    font-size: 28px;
+  }
+  .section {
+    margin-bottom: 16px;
+  }
+  .section label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .panel-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  textarea, input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #0e1726;
+    color: var(--text);
+    padding: 12px 14px;
+    font: inherit;
+  }
+  textarea {
+    min-height: 190px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn {
+    border: none;
+    border-radius: 12px;
+    padding: 11px 16px;
+    background: linear-gradient(135deg, #2b7fff, #31b4ff);
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .note {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .detail-grid, .row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="header">
+    <div class="title">
+      <h1>TruthGuard Agent Portal</h1>
+      <p>When a response is flagged as hallucinated, it lands here instead of being returned directly to the user. Review the AI draft, then send a human intervention reply back into the live chat session.</p>
+    </div>
+    <div class="status" id="socketStatus">● Connecting</div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>Pending Queue</h2>
+      <div class="queue-count" id="queueCount">0</div>
+      <div class="task-list" id="taskList"></div>
+      <p class="empty" id="emptyState">No hallucination reviews are waiting right now.</p>
+    </aside>
+
+    <main class="workspace">
+      <h2>Review Workspace</h2>
+      <div id="workspaceBody" class="empty">Select a queued task to inspect the question, the flagged AI draft, and send a human-reviewed answer.</div>
+    </main>
+  </div>
+</div>
+
+<script>
+let socket = null;
+let tasks = [];
+let selectedTaskId = null;
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(s || ''));
+  return d.innerHTML;
+}
+
+function setStatus(text, tone = 'green') {
+  const el = document.getElementById('socketStatus');
+  el.textContent = `● ${text}`;
+  el.style.color = tone === 'red' ? 'var(--red)' : tone === 'amber' ? 'var(--amber)' : 'var(--green)';
+  el.style.borderColor = tone === 'red' ? 'rgba(255,123,114,.24)' : tone === 'amber' ? 'rgba(240,180,77,.24)' : 'rgba(74,194,107,.25)';
+  el.style.background = tone === 'red' ? 'rgba(255,123,114,.1)' : tone === 'amber' ? 'rgba(240,180,77,.1)' : 'rgba(74,194,107,.1)';
+}
+
+function connect() {
+  const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+  socket = new WebSocket(`${scheme}://${location.host}/ws/agent`);
+
+  socket.addEventListener('open', () => setStatus('Connected'));
+  socket.addEventListener('close', () => {
+    setStatus('Reconnecting', 'amber');
+    setTimeout(connect, 1500);
+  });
+  socket.addEventListener('error', () => setStatus('Disconnected', 'red'));
+  socket.addEventListener('message', (ev) => {
+    const event = JSON.parse(ev.data);
+    if (event.type === 'queue_snapshot') {
+      tasks = event.tasks || [];
+      if (!tasks.some(task => task.task_id === selectedTaskId)) {
+        selectedTaskId = tasks[0]?.task_id || null;
+      }
+      renderTaskList();
+      renderWorkspace();
+    } else if (event.type === 'resolved') {
+      renderWorkspaceNotice(`Task ${event.task_id} was sent back to the user by ${event.reviewer}.`);
+    } else if (event.type === 'error') {
+      renderWorkspaceNotice(event.detail || 'Unknown portal error.');
+    }
+  });
+}
+
+function send(payload) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    renderWorkspaceNotice('The portal socket is not connected yet.');
+    return;
+  }
+  socket.send(JSON.stringify(payload));
+}
+
+function renderTaskList() {
+  const list = document.getElementById('taskList');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('queueCount');
+  count.textContent = String(tasks.length);
+
+  if (!tasks.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  list.innerHTML = tasks.map(task => {
+    const isInsufficient = task.trigger === 'INSUFFICIENT_INFO';
+    const triggerTag = isInsufficient
+      ? `<span style="display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(240,180,77,.15);color:var(--amber);border:1px solid rgba(240,180,77,.3)">NO INFO</span>`
+      : `<span style="display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(255,123,114,.15);color:var(--red);border:1px solid rgba(255,123,114,.3)">HALLUCINATED</span>`;
+    return `
+      <button class="task-btn ${task.task_id === selectedTaskId ? 'active' : ''}" onclick="selectTask('${task.task_id}')">
+        <strong>${esc(task.task_id)}</strong>${triggerTag}
+        <small>${esc(task.question.slice(0, 110))}${task.question.length > 110 ? '…' : ''}</small>
+      </button>`;
+  }).join('');
+}
+
+function selectTask(taskId) {
+  selectedTaskId = taskId;
+  renderTaskList();
+  renderWorkspace();
+}
+
+function renderWorkspaceNotice(text) {
+  document.getElementById('workspaceBody').innerHTML = `<p class="empty">${esc(text)}</p>`;
+}
+
+function renderWorkspace() {
+  const root = document.getElementById('workspaceBody');
+  const task = tasks.find(item => item.task_id === selectedTaskId);
+  if (!task) {
+    root.innerHTML = '<p class="empty">Select a queued task to inspect the question, the flagged AI draft, and send a human-reviewed answer.</p>';
+    return;
+  }
+
+  const result = task.pipeline_result || {};
+  const draft = result.answer || '';
+  const summary = result.consistency?.final_summary || '';
+  const sourceCount = (result.sources || []).length;
+  const defaultReply = task.trigger === 'INSUFFICIENT_INFO'
+    ? `Hi! I'm the human support agent.\n\nRegarding your question: "${task.question}"\n\n`
+    : (draft || `I reviewed your question: "${task.question}"\n\nHere is the corrected response:\n`);
+
+  root.innerHTML = `
+    <div class="detail-grid">
+      <div class="mini-card">
+        <span>Hallucination Label</span>
+        <strong>${esc(task.consistency_label || 'HALLUCINATED')}</strong>
+      </div>
+      <div class="mini-card">
+        <span>Risk Score</span>
+        <strong>${esc(String(task.hallucination_score ?? 0))}</strong>
+      </div>
+      <div class="mini-card">
+        <span>Confidence</span>
+        <strong>${esc(String(task.confidence_score ?? 0))}</strong>
+      </div>
+    </div>
+
+    <div class="section">
+      <label>Original User Question</label>
+      <div class="panel-box">${esc(task.question)}</div>
+    </div>
+
+    <div class="section">
+      <label>Flagged AI Draft</label>
+      <div class="panel-box">${esc(draft)}</div>
+    </div>
+
+    <div class="section">
+      <label>Why It Was Held Back</label>
+      <div class="panel-box">${esc(
+        task.trigger === 'INSUFFICIENT_INFO'
+          ? 'The AI responded that it does not have enough information in the Stripe docs to answer this question. It was forwarded here so a human agent can provide a direct answer.'
+          : (summary || 'The consistency guard labeled this answer as hallucinated, so it was redirected for human intervention.')
+      )}</div>
+    </div>
+
+    <div class="section">
+      <label>Context</label>
+      <div class="panel-box">${esc(`Sources attached: ${sourceCount}\nTask session: ${task.session_id}`)}</div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Reviewer Name</label>
+        <input id="reviewerName" value="Human Agent">
+      </div>
+      <div>
+        <label>Reply to Current Question</label>
+        <textarea id="reviewAnswer">${esc(defaultReply)}</textarea>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="resolveTask('${task.task_id}')">Send Human Reply</button>
+      <span class="note">This sends the reviewed answer back to the exact live chat session that asked the question.</span>
+    </div>
+  `;
+}
+
+function resolveTask(taskId) {
+  const reviewer = document.getElementById('reviewerName')?.value?.trim() || 'Human Agent';
+  const answer = document.getElementById('reviewAnswer')?.value?.trim() || '';
+  if (!answer) {
+    renderWorkspaceNotice('Write a reply before sending the human intervention response.');
+    return;
+  }
+  send({ type: 'resolve_task', task_id: taskId, answer, reviewer });
+}
+
+connect();
+</script>
+</body>
+</html>

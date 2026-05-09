@@ -3,7 +3,11 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import requests
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from pinecone import Pinecone
+from opentelemetry import trace as _otel_trace
+
+_tracer = _otel_trace.get_tracer(__name__)
 
 
 from config.settings import (
@@ -33,6 +37,7 @@ _PREFERRED_EMBED = [
     "models/embedding-001",
 ]
 _active_embed_model: str | None = None
+_embeddings_client: GoogleGenerativeAIEmbeddings | None = None
 
 
 def _get_active_model() -> str:
@@ -68,62 +73,79 @@ def _get_active_model() -> str:
     )
 
 
+def _get_embeddings_client() -> GoogleGenerativeAIEmbeddings:
+    global _embeddings_client
+    if _embeddings_client is None:
+        _embeddings_client = GoogleGenerativeAIEmbeddings(
+            model=_get_active_model(),
+            google_api_key=GEMINI_API_KEY,
+        )
+    return _embeddings_client
+
+
 def embed_query(query: str) -> list[float]:
-    model = _get_active_model()
-    resp = requests.post(
-        _EMBED_BASE.format(model=model),
-        params={"key": GEMINI_API_KEY},
-        headers={"Content-Type": "application/json"},
-        json={"content": {"parts": [{"text": query}]}},
-        timeout=30,
-    )
-    if not resp.ok:
-        raise RuntimeError(f"Embedding API {resp.status_code}: {resp.text[:400]}")
-    return resp.json()["embedding"]["values"]
+    with _tracer.start_as_current_span("embed_query") as span:
+        span.set_attribute("query.length", len(query))
+        try:
+            result = _get_embeddings_client().embed_query(query)
+            span.set_attribute("embedding.dimensions", len(result))
+            return result
+        except Exception as exc:
+            span.record_exception(exc)
+            raise RuntimeError(f"Embedding failed: {exc}") from exc
 
 
 def retrieve(query: str, top_k: int = TOP_K) -> dict:
-    query_vector = embed_query(query)
-    index = _get_index()
+    with _tracer.start_as_current_span("retrieve") as span:
+        span.set_attribute("query", query[:200])
+        span.set_attribute("top_k", top_k)
 
-    results = index.query(
-        vector=query_vector,
-        top_k=top_k,
-        include_metadata=True,
-    )
+        query_vector = embed_query(query)
+        index = _get_index()
 
-    chunks = []
-    sources = []
-    seen_urls: set[str] = set()
-
-    for match in results.matches:
-        meta = match.metadata or {}
-        text = meta.get("text", "")
-        url = meta.get("url", "")
-        title = meta.get("page_title", url)
-
-        chunks.append(
-            {
-                "text": text,
-                "url": url,
-                "page_title": title,
-                "score": round(float(match.score), 4),
-            }
+        results = index.query(
+            vector=query_vector,
+            top_k=top_k,
+            include_metadata=True,
         )
 
-        if url and url not in seen_urls:
-            sources.append({"url": url, "title": title})
-            seen_urls.add(url)
+        chunks = []
+        sources = []
+        seen_urls: set[str] = set()
 
-    context_parts = []
-    for c in chunks:
-        header = f"[Source: {c['url']} | {c['page_title']}]"
-        context_parts.append(f"{header}\n{c['text']}")
+        for match in results.matches:
+            meta = match.metadata or {}
+            text = meta.get("text", "")
+            url = meta.get("url", "")
+            title = meta.get("page_title", url)
 
-    context = "\n\n---\n\n".join(context_parts)
+            chunks.append(
+                {
+                    "text": text,
+                    "url": url,
+                    "page_title": title,
+                    "score": round(float(match.score), 4),
+                }
+            )
 
-    return {
-        "context": context,
-        "sources": sources,
-        "chunks": chunks,
-    }
+            if url and url not in seen_urls:
+                sources.append({"url": url, "title": title})
+                seen_urls.add(url)
+
+        context_parts = []
+        for c in chunks:
+            header = f"[Source: {c['url']} | {c['page_title']}]"
+            context_parts.append(f"{header}\n{c['text']}")
+
+        context = "\n\n---\n\n".join(context_parts)
+
+        span.set_attribute("results.count", len(results.matches))
+        if results.matches:
+            span.set_attribute("results.top_score", round(float(results.matches[0].score), 4))
+        span.set_attribute("context.length", len(context))
+
+        return {
+            "context": context,
+            "sources": sources,
+            "chunks": chunks,
+        }

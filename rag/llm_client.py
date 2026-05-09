@@ -4,7 +4,23 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import time
 import requests
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from opentelemetry import trace as _otel_trace, metrics as _otel_metrics
+
 from config.settings import GEMINI_API_KEY
+
+_tracer = _otel_trace.get_tracer(__name__)
+_llm_duration_hist = None
+
+
+def _get_llm_duration_hist():
+    global _llm_duration_hist
+    if _llm_duration_hist is None:
+        _llm_duration_hist = _otel_metrics.get_meter("truthguard").create_histogram(
+            "truthguard.llm.duration_ms", unit="ms", description="LLM call duration"
+        )
+    return _llm_duration_hist
 
 _GEN_URL = "https://generativelanguage.googleapis.com/v1beta/{model}:generateContent"
 _LIST_URL = "https://generativelanguage.googleapis.com/v1beta/models"
@@ -20,6 +36,40 @@ _PREFERRED_LLM = [
 _active_llm: str | None = None
 _overloaded: set[str] = set()   # models returning 503 this session
 _gen_capable: list[str] = []    # discovered from ListModels, cached
+_llm_clients: dict[str, ChatGoogleGenerativeAI] = {}
+
+
+def _normalize_model_name(model: str) -> str:
+    return model.removeprefix("models/")
+
+
+def _extract_text(response) -> str:
+    content = getattr(response, "content", "")
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict) and "text" in item:
+                parts.append(str(item["text"]))
+            else:
+                parts.append(str(item))
+        return "".join(parts).strip()
+    return str(content).strip()
+
+
+def _get_llm_client(model: str, temperature: float) -> ChatGoogleGenerativeAI:
+    normalized = _normalize_model_name(model)
+    cache_key = f"{normalized}|{temperature}"
+    if cache_key not in _llm_clients:
+        _llm_clients[cache_key] = ChatGoogleGenerativeAI(
+            model=normalized,
+            google_api_key=GEMINI_API_KEY,
+            temperature=temperature,
+        )
+    return _llm_clients[cache_key]
 
 
 def _list_gen_models() -> list[str]:
@@ -80,52 +130,82 @@ def get_llm_model() -> str:
     return _active_llm
 
 
+async def astream_llm(
+    system_prompt: str,
+    user_prompt: str,
+    temperature: float = 0.1,
+):
+    """Async generator — yields text chunks as they arrive from the model."""
+    model = get_llm_model()
+    messages = []
+    if system_prompt:
+        messages.append(SystemMessage(content=system_prompt))
+    messages.append(HumanMessage(content=user_prompt))
+    client = _get_llm_client(model, temperature)
+    with _tracer.start_as_current_span("llm.stream") as span:
+        span.set_attribute("llm.model", _normalize_model_name(model))
+        span.set_attribute("llm.temperature", temperature)
+        total_chars = 0
+        async for chunk in client.astream(messages):
+            text = _extract_text(chunk)
+            if text:
+                total_chars += len(text)
+                yield text
+        span.set_attribute("llm.response_chars", total_chars)
+
+
 def call_llm(
     system_prompt: str,
     user_prompt: str,
     temperature: float = 0.1,
     _attempt: int = 0,
 ) -> str:
-    """Call the active LLM; automatically fall back on 503 overload, retry on 429."""
+    """Call the active LLM through LangChain; fall back on 503 and retry on 429."""
     if _attempt >= len(_gen_capable) + 1:
         raise RuntimeError("All LLM models are currently overloaded. Try again in a moment.")
 
     model = get_llm_model()
-    body: dict = {
-        "contents": [{"parts": [{"text": user_prompt}]}],
-        "generationConfig": {"temperature": temperature},
-    }
-    if system_prompt:
-        body["system_instruction"] = {"parts": [{"text": system_prompt}]}
+    t0 = time.time()
+    with _tracer.start_as_current_span("llm.call") as span:
+        span.set_attribute("llm.model", _normalize_model_name(model))
+        span.set_attribute("llm.temperature", temperature)
+        span.set_attribute("llm.attempt", _attempt)
+        span.set_attribute("llm.prompt_chars", len(system_prompt) + len(user_prompt))
+        try:
+            messages = []
+            if system_prompt:
+                messages.append(SystemMessage(content=system_prompt))
+            messages.append(HumanMessage(content=user_prompt))
 
-    resp = requests.post(
-        _GEN_URL.format(model=model),
-        params={"key": GEMINI_API_KEY},
-        headers={"Content-Type": "application/json"},
-        json=body,
-        timeout=60,
-    )
+            client = _get_llm_client(model, temperature)
+            response = client.invoke(messages)
+            text = _extract_text(response)
+            if not text:
+                raise RuntimeError("Received an empty response from the LLM.")
 
-    if resp.status_code == 503:
-        print(f"  {model} overloaded (503) — trying next model...")
-        _overloaded.add(model)
-        global _active_llm
-        _active_llm = None
-        time.sleep(1)
-        return call_llm(system_prompt, user_prompt, temperature, _attempt + 1)
+            elapsed_ms = (time.time() - t0) * 1000
+            span.set_attribute("llm.response_chars", len(text))
+            span.set_attribute("llm.duration_ms", round(elapsed_ms))
+            _get_llm_duration_hist().record(elapsed_ms, {"llm.model": _normalize_model_name(model)})
+            return text
+        except Exception as exc:
+            message = str(exc)
+            span.record_exception(exc)
+            global _active_llm
 
-    if resp.status_code == 429:
-        wait = 15 * (2 ** _attempt)   # 15s → 30s → 60s  (resets within 1 min window)
-        print(f"  Rate limited (429) — waiting {wait}s...")
-        time.sleep(wait)
-        return call_llm(system_prompt, user_prompt, temperature, _attempt + 1)
+            if "503" in message or "overloaded" in message.lower():
+                span.set_attribute("llm.error", "overloaded_503")
+                print(f"  {model} overloaded (503) — trying next model...")
+                _overloaded.add(model)
+                _active_llm = None
+                time.sleep(1)
+                return call_llm(system_prompt, user_prompt, temperature, _attempt + 1)
 
-    if not resp.ok:
-        raise RuntimeError(
-            f"Error calling model '{model}' ({resp.status_code}): {resp.text[:400]}"
-        )
+            if "429" in message or "resource exhausted" in message.lower():
+                wait = 15 * (2 ** _attempt)
+                span.set_attribute("llm.error", "rate_limited_429")
+                print(f"  Rate limited (429) — waiting {wait}s...")
+                time.sleep(wait)
+                return call_llm(system_prompt, user_prompt, temperature, _attempt + 1)
 
-    try:
-        return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
-    except (KeyError, IndexError):
-        raise RuntimeError(f"Unexpected LLM response structure: {resp.text[:300]}")
+            raise RuntimeError(f"Error calling model '{model}': {message}") from exc

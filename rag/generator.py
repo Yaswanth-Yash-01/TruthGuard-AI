@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from rag.llm_client import call_llm
+from rag.llm_client import call_llm, astream_llm
 
 _SYSTEM = """You are TruthGuard AI, a precise assistant for Stripe's official documentation.
 
@@ -23,3 +23,10 @@ Answer strictly from the context above:"""
 def generate_answer(context: str, query: str) -> str:
     user_prompt = _TEMPLATE.format(context=context, query=query)
     return call_llm(_SYSTEM, user_prompt, temperature=0.1)
+
+
+async def astream_answer(context: str, query: str):
+    """Async generator — yields answer tokens for real-time streaming."""
+    user_prompt = _TEMPLATE.format(context=context, query=query)
+    async for token in astream_llm(_SYSTEM, user_prompt, temperature=0.1):
+        yield token

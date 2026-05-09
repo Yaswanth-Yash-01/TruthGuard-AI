@@ -4,8 +4,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import json
 import re
+from opentelemetry import trace as _otel_trace
 
 from rag.llm_client import call_llm
+
+_tracer = _otel_trace.get_tracer(__name__)
 
 _PROMPT = """You are a rigorous fact-checking agent for Stripe documentation.
 
@@ -63,6 +66,11 @@ def _parse_json(raw: str) -> dict:
 
 
 def fact_check(answer: str, context: str) -> dict:
-    prompt = _PROMPT.format(context=context[:6000], answer=answer)
-    raw = call_llm("", prompt, temperature=0)
-    return _parse_json(raw)
+    with _tracer.start_as_current_span("fact_check") as span:
+        span.set_attribute("answer.length", len(answer))
+        prompt = _PROMPT.format(context=context[:6000], answer=answer)
+        raw = call_llm("", prompt, temperature=0)
+        result = _parse_json(raw)
+        span.set_attribute("fact_check.verdict", result.get("overall_verdict", ""))
+        span.set_attribute("fact_check.claims_count", len(result.get("claims", [])))
+        return result

@@ -3,8 +3,11 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from typing import TypedDict
+from opentelemetry import trace as _otel_trace
 
 from langgraph.graph import StateGraph, END
+
+_tracer = _otel_trace.get_tracer(__name__)
 
 from rag.retriever import retrieve
 from rag.generator import generate_answer
@@ -108,15 +111,20 @@ def get_pipeline():
 
 
 def run_pipeline(query: str) -> dict:
-    initial_state: PipelineState = {
-        "query": query,
-        "context": "",
-        "sources": [],
-        "answer": "",
-        "fact_check_result": {},
-        "consistency_result": {},
-        "confidence_result": {},
-        "final_output": {},
-    }
-    result = get_pipeline().invoke(initial_state)
-    return result["final_output"]
+    with _tracer.start_as_current_span("pipeline.run") as span:
+        span.set_attribute("query", query[:200])
+        initial_state: PipelineState = {
+            "query": query,
+            "context": "",
+            "sources": [],
+            "answer": "",
+            "fact_check_result": {},
+            "consistency_result": {},
+            "confidence_result": {},
+            "final_output": {},
+        }
+        result = get_pipeline().invoke(initial_state)
+        output = result["final_output"]
+        span.set_attribute("answer.length", len(output.get("answer", "")))
+        span.set_attribute("sources.count", len(output.get("sources", [])))
+        return output
