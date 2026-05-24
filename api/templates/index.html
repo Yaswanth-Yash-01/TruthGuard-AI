@@ -827,8 +827,9 @@ function handleSocketEvent(event) {
 }
 
 function connectSocket() {
-  const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
-  chatSocket = new WebSocket(`${scheme}://${location.host}/ws/chat/${sessionId}`);
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const WS_BASE = isLocal ? `ws://${location.host}` : 'wss://truthguard-ai-yyf7.onrender.com';
+  chatSocket = new WebSocket(`${WS_BASE}/ws/chat/${sessionId}`);
 
   chatSocket.addEventListener('open', () => {
     if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }

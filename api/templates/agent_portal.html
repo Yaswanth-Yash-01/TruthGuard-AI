@@ -249,8 +249,9 @@ function setStatus(text, tone = 'green') {
 }
 
 function connect() {
-  const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
-  socket = new WebSocket(`${scheme}://${location.host}/ws/agent`);
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const WS_BASE = isLocal ? `ws://${location.host}` : 'wss://truthguard-ai-yyf7.onrender.com';
+  socket = new WebSocket(`${WS_BASE}/ws/agent`);
 
   socket.addEventListener('open', () => setStatus('Connected'));
   socket.addEventListener('close', () => {
