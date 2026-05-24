@@ -209,8 +209,7 @@ async def lifespan(app: FastAPI):
     loop = asyncio.get_event_loop()
     try:
         from rag.retriever import _get_active_model
-        emb = await loop.run_in_executor(None, _get_active_model)
-        print(f"  Embedding model: {emb}")
+        print(f"  Embedding model: {_get_active_model()}")
     except Exception as exc:
         print(f"  WARNING — embedding warmup: {exc}")
     try:

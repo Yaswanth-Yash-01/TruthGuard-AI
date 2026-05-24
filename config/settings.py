@@ -4,11 +4,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 COHERE_API_KEY: str = os.getenv("COHERE_API_KEY", "")
-GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")   # used for embeddings only
 PINECONE_API_KEY: str = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME: str = os.getenv("PINECONE_INDEX_NAME", "truthguard")
 
-EMBEDDING_MODEL: str = "models/text-embedding-004"
+EMBEDDING_MODEL: str = "embed-english-v3.0"
 LLM_MODEL: str = "command-r-plus"
 TOP_K: int = 5
 CHUNK_SIZE: int = 500

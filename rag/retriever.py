@@ -2,23 +2,25 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import requests
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+import cohere
 from pinecone import Pinecone
 from opentelemetry import trace as _otel_trace
 
+from config.settings import COHERE_API_KEY, PINECONE_API_KEY, PINECONE_INDEX_NAME, EMBEDDING_MODEL, TOP_K
+
 _tracer = _otel_trace.get_tracer(__name__)
 
-
-from config.settings import (
-    GEMINI_API_KEY,
-    PINECONE_API_KEY,
-    PINECONE_INDEX_NAME,
-    EMBEDDING_MODEL,
-    TOP_K,
-)
-
 _pinecone_index = None
+_cohere_client: cohere.Client | None = None
+
+
+def _get_cohere_client() -> cohere.Client:
+    global _cohere_client
+    if _cohere_client is None:
+        if not COHERE_API_KEY:
+            raise RuntimeError("COHERE_API_KEY is empty — add it to your .env file.")
+        _cohere_client = cohere.Client(api_key=COHERE_API_KEY)
+    return _cohere_client
 
 
 def _get_index():
@@ -29,67 +31,23 @@ def _get_index():
     return _pinecone_index
 
 
-_EMBED_BASE = "https://generativelanguage.googleapis.com/v1beta/{model}:embedContent"
-_PREFERRED_EMBED = [
-    "models/gemini-embedding-001",    # detected during ingestion — try first
-    "models/text-embedding-004",
-    "models/text-multilingual-embedding-002",
-    "models/embedding-001",
-]
-_active_embed_model: str | None = None
-_embeddings_client: GoogleGenerativeAIEmbeddings | None = None
-
-
 def _get_active_model() -> str:
-    """Try each candidate with a real probe call; cache the first that responds."""
-    global _active_embed_model
-    if _active_embed_model:
-        return _active_embed_model
-
-    if not GEMINI_API_KEY:
-        raise RuntimeError("GEMINI_API_KEY is empty — add it to your .env file.")
-
-    for model in _PREFERRED_EMBED:
-        try:
-            probe = requests.post(
-                _EMBED_BASE.format(model=model),
-                params={"key": GEMINI_API_KEY},
-                headers={"Content-Type": "application/json"},
-                json={"content": {"parts": [{"text": "probe"}]}},
-                timeout=15,
-            )
-            if probe.ok and probe.json().get("embedding"):
-                _active_embed_model = model
-                return model
-        except requests.exceptions.ConnectionError:
-            raise RuntimeError(
-                "Cannot reach generativelanguage.googleapis.com.\n"
-                "Check your internet connection, then restart the server with:\n"
-                "  uvicorn api.main:app --port 8000   (no --reload)"
-            )
-
-    raise RuntimeError(
-        "No embedding model accessible. Tried: " + ", ".join(_PREFERRED_EMBED)
-    )
-
-
-def _get_embeddings_client() -> GoogleGenerativeAIEmbeddings:
-    global _embeddings_client
-    if _embeddings_client is None:
-        _embeddings_client = GoogleGenerativeAIEmbeddings(
-            model=_get_active_model(),
-            google_api_key=GEMINI_API_KEY,
-        )
-    return _embeddings_client
+    return EMBEDDING_MODEL
 
 
 def embed_query(query: str) -> list[float]:
     with _tracer.start_as_current_span("embed_query") as span:
         span.set_attribute("query.length", len(query))
         try:
-            result = _get_embeddings_client().embed_query(query)
-            span.set_attribute("embedding.dimensions", len(result))
-            return result
+            co = _get_cohere_client()
+            response = co.embed(
+                texts=[query],
+                model=EMBEDDING_MODEL,
+                input_type="search_query",
+            )
+            embedding = response.embeddings[0]
+            span.set_attribute("embedding.dimensions", len(embedding))
+            return embedding
         except Exception as exc:
             span.record_exception(exc)
             raise RuntimeError(f"Embedding failed: {exc}") from exc
@@ -115,18 +73,16 @@ def retrieve(query: str, top_k: int = TOP_K) -> dict:
 
         for match in results.matches:
             meta = match.metadata or {}
-            text = meta.get("text", "")
-            url = meta.get("url", "")
+            text  = meta.get("text", "")
+            url   = meta.get("url", "")
             title = meta.get("page_title", url)
 
-            chunks.append(
-                {
-                    "text": text,
-                    "url": url,
-                    "page_title": title,
-                    "score": round(float(match.score), 4),
-                }
-            )
+            chunks.append({
+                "text": text,
+                "url": url,
+                "page_title": title,
+                "score": round(float(match.score), 4),
+            })
 
             if url and url not in seen_urls:
                 sources.append({"url": url, "title": title})
@@ -144,8 +100,4 @@ def retrieve(query: str, top_k: int = TOP_K) -> dict:
             span.set_attribute("results.top_score", round(float(results.matches[0].score), 4))
         span.set_attribute("context.length", len(context))
 
-        return {
-            "context": context,
-            "sources": sources,
-            "chunks": chunks,
-        }
+        return {"context": context, "sources": sources, "chunks": chunks}

@@ -5,12 +5,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import time
 import hashlib
 import requests
+import cohere
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from pinecone import Pinecone, ServerlessSpec
 
 from config.settings import (
-    GEMINI_API_KEY,
+    COHERE_API_KEY,
     PINECONE_API_KEY,
     PINECONE_INDEX_NAME,
     EMBEDDING_MODEL,
@@ -35,6 +36,17 @@ HEADERS = {
     )
 }
 
+_co: cohere.Client | None = None
+
+
+def _get_cohere() -> cohere.Client:
+    global _co
+    if _co is None:
+        if not COHERE_API_KEY:
+            raise RuntimeError("COHERE_API_KEY is empty — add it to your .env file.")
+        _co = cohere.Client(api_key=COHERE_API_KEY)
+    return _co
+
 
 def chunk_text(text: str) -> list[str]:
     chunks = []
@@ -48,95 +60,37 @@ def chunk_text(text: str) -> list[str]:
     return [c for c in chunks if len(c.strip()) > 50]
 
 
-_EMBED_BASE = "https://generativelanguage.googleapis.com/v1beta/{model}:embedContent"
-_LIST_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models"
-_PREFERRED_EMBED = [
-    "models/text-embedding-004",
-    "models/text-multilingual-embedding-002",
-    "models/embedding-001",
-]
-_active_embed_model: str | None = None
-
-
-def _get_active_model() -> str:
-    """Use ListModels to discover which embedding model is available, then cache it."""
-    global _active_embed_model
-    if _active_embed_model:
-        return _active_embed_model
-
-    if not GEMINI_API_KEY:
-        raise RuntimeError("GEMINI_API_KEY is empty — add it to your .env file.")
-
-    list_resp = requests.get(
-        _LIST_MODELS_URL,
-        params={"key": GEMINI_API_KEY},
-        timeout=30,
-    )
-    if not list_resp.ok:
-        raise RuntimeError(
-            f"ListModels failed ({list_resp.status_code}):\n{list_resp.text[:400]}\n"
-            "Your API key may be invalid. Check https://aistudio.google.com/app/apikey"
-        )
-
-    all_models = list_resp.json().get("models", [])
-    embed_capable = [
-        m["name"] for m in all_models
-        if "embedContent" in m.get("supportedGenerationMethods", [])
-    ]
-
-    if not embed_capable:
-        names = [m["name"] for m in all_models]
-        raise RuntimeError(
-            "No embedContent-capable models found for this API key.\n"
-            f"All available models ({len(names)}): {names}"
-        )
-
-    # Use preferred model if available, otherwise take first capable model.
-    for pref in _PREFERRED_EMBED:
-        if pref in embed_capable:
-            print(f"  Embedding model: {pref}")
-            _active_embed_model = pref
-            return pref
-
-    model = embed_capable[0]
-    print(f"  Embedding model (auto-detected): {model}")
-    _active_embed_model = model
-    return model
-
-
-def _embed_one(text: str) -> list[float]:
-    model = _get_active_model()
-    for attempt in range(6):
-        resp = requests.post(
-            _EMBED_BASE.format(model=model),
-            params={"key": GEMINI_API_KEY},
-            headers={"Content-Type": "application/json"},
-            json={"content": {"parts": [{"text": text}]}},
-            timeout=30,
-        )
-        if resp.status_code == 429:
-            wait = 15 * (2 ** attempt)   # 15s → 30s → 60s → 120s → 240s → 480s
-            print(f"  Rate limited (429) — waiting {wait}s (attempt {attempt + 1}/6)...")
-            time.sleep(wait)
-            continue
-        if not resp.ok:
-            raise RuntimeError(f"Embedding API {resp.status_code}: {resp.text[:400]}")
-        return resp.json()["embedding"]["values"]
-    raise RuntimeError("Embedding still rate-limited after 6 retries.")
-
-
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    vectors = []
-    for t in texts:
-        vectors.append(_embed_one(t))
-        time.sleep(0.7)   # 0.7 s gap ≈ 85 calls/min, safely under the 100 RPM free-tier cap
-    return vectors
+    co = _get_cohere()
+    all_embeddings: list[list[float]] = []
+    batch_size = 90  # Cohere limit is 96 per request
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i : i + batch_size]
+        for attempt in range(5):
+            try:
+                response = co.embed(
+                    texts=batch,
+                    model=EMBEDDING_MODEL,
+                    input_type="search_document",
+                )
+                all_embeddings.extend(response.embeddings)
+                break
+            except Exception as exc:
+                msg = str(exc)
+                if "429" in msg or "rate" in msg.lower() or "too many" in msg.lower():
+                    wait = 15 * (2 ** attempt)
+                    print(f"  Rate limited — waiting {wait}s...")
+                    time.sleep(wait)
+                else:
+                    raise RuntimeError(f"Embedding failed: {exc}") from exc
+        if i + batch_size < len(texts):
+            time.sleep(0.3)
+    return all_embeddings
 
 
 def extract_text(soup: BeautifulSoup) -> str:
     for tag in soup.find_all(["nav", "footer", "script", "style", "header", "aside"]):
         tag.decompose()
-
     main = (
         soup.find("main")
         or soup.find("article")
@@ -144,20 +98,14 @@ def extract_text(soup: BeautifulSoup) -> str:
         or soup.find(class_=lambda c: c and any(x in c for x in ["content", "docs", "article"]))
         or soup.body
     )
-
-    if main:
-        text = main.get_text(separator=" ", strip=True)
-    else:
-        text = soup.get_text(separator=" ", strip=True)
-
+    text = main.get_text(separator=" ", strip=True) if main else soup.get_text(separator=" ", strip=True)
     return " ".join(text.split())
 
 
 def get_stripe_links(soup: BeautifulSoup, base_url: str) -> list[str]:
     links = []
     for a in soup.find_all("a", href=True):
-        href = a["href"]
-        full = urljoin(base_url, href)
+        full = urljoin(base_url, a["href"])
         parsed = urlparse(full)
         if (
             parsed.netloc in ("stripe.com", "www.stripe.com")
@@ -169,22 +117,19 @@ def get_stripe_links(soup: BeautifulSoup, base_url: str) -> list[str]:
     return links
 
 
-def init_pinecone(dim: int) -> object:
+def init_pinecone(dim: int):
     pc = Pinecone(api_key=PINECONE_API_KEY)
-    existing_names = [idx.name for idx in pc.list_indexes()]
+    existing = [idx.name for idx in pc.list_indexes()]
 
-    if PINECONE_INDEX_NAME in existing_names:
+    if PINECONE_INDEX_NAME in existing:
         info = pc.describe_index(PINECONE_INDEX_NAME)
         if info.dimension != dim:
-            print(
-                f"  Index dimension mismatch "
-                f"(existing={info.dimension}, model={dim}). Recreating..."
-            )
+            print(f"  Dimension mismatch (existing={info.dimension}, new={dim}). Recreating index...")
             pc.delete_index(PINECONE_INDEX_NAME)
-            existing_names = []  # force recreation below
+            existing = []
 
-    if PINECONE_INDEX_NAME not in existing_names:
-        print(f"Creating Pinecone index '{PINECONE_INDEX_NAME}' (dim={dim}) ...")
+    if PINECONE_INDEX_NAME not in existing:
+        print(f"Creating Pinecone index '{PINECONE_INDEX_NAME}' (dim={dim})...")
         pc.create_index(
             name=PINECONE_INDEX_NAME,
             dimension=dim,
@@ -199,9 +144,10 @@ def init_pinecone(dim: int) -> object:
 
 
 def scrape_and_ingest():
-    print("Probing embedding models...")
-    _test_vec = _embed_one("test string")
-    embed_dim = len(_test_vec)
+    print(f"Embedding model: {EMBEDDING_MODEL}")
+    print("Probing embedding API...")
+    test_vec = embed_texts(["probe"])
+    embed_dim = len(test_vec[0])
     print(f"  Dimension: {embed_dim}  OK")
 
     index = init_pinecone(embed_dim)
@@ -226,7 +172,6 @@ def scrape_and_ingest():
             continue
 
         soup = BeautifulSoup(resp.text, "html.parser")
-
         title_tag = soup.find("title")
         page_title = title_tag.get_text(strip=True) if title_tag else url
 
@@ -247,18 +192,16 @@ def scrape_and_ingest():
         vectors = []
         for i, (chunk, emb) in enumerate(zip(chunks, embeddings)):
             vid = hashlib.md5(f"{url}||{i}".encode()).hexdigest()
-            vectors.append(
-                {
-                    "id": vid,
-                    "values": emb,
-                    "metadata": {
-                        "url": url,
-                        "page_title": page_title,
-                        "chunk_index": i,
-                        "text": chunk,
-                    },
-                }
-            )
+            vectors.append({
+                "id": vid,
+                "values": emb,
+                "metadata": {
+                    "url": url,
+                    "page_title": page_title,
+                    "chunk_index": i,
+                    "text": chunk,
+                },
+            })
 
         for batch_start in range(0, len(vectors), 100):
             index.upsert(vectors=vectors[batch_start : batch_start + 100])

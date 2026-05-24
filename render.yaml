@@ -8,8 +8,6 @@ services:
     envVars:
       - key: COHERE_API_KEY
         sync: false
-      - key: GEMINI_API_KEY
-        sync: false
       - key: PINECONE_API_KEY
         sync: false
       - key: PINECONE_INDEX_NAME
