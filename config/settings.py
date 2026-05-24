@@ -9,7 +9,7 @@ PINECONE_API_KEY: str = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME: str = os.getenv("PINECONE_INDEX_NAME", "truthguard")
 
 EMBEDDING_MODEL: str = "models/text-embedding-004"
-LLM_MODEL: str = "claude-sonnet-4-6"
+LLM_MODEL: str = "claude-haiku-4-5-20251001"
 TOP_K: int = 5
 CHUNK_SIZE: int = 500
 CHUNK_OVERLAP: int = 100
