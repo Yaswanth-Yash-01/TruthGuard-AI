@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TruthGuard AI — Stripe Docs Assistant</title>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --bg2:       #161b22;
+    --bg3:       #1c2230;
+    --border:    #30363d;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --blue:      #58a6ff;
+    --green:     #3fb950;
+    --amber:     #e3b341;
+    --red:       #f85149;
+    --purple:    #a371f7;
+    --radius:    14px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, #58a6ff, #a371f7);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .header-info h1 {
+    font-size: 16px; font-weight: 700;
+    background: linear-gradient(90deg, #58a6ff, #a371f7);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header-info p { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .header-pill {
+    margin-left: auto;
+    background: rgba(63,185,80,.12);
+    color: var(--green);
+    border: 1px solid rgba(63,185,80,.25);
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 11px; font-weight: 600;
+  }
+  .portal-link {
+    color: var(--blue);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 10px;
+  }
+  .portal-link:hover { text-decoration: underline; }
+
+  /* ── Chat area ── */
+  .chat-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .chat-scroll::-webkit-scrollbar { width: 5px; }
+  .chat-scroll::-webkit-scrollbar-track { background: transparent; }
+  .chat-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── Welcome screen ── */
+  .welcome {
+    text-align: center;
+    padding: 48px 20px 24px;
+    color: var(--muted);
+  }
+  .welcome-icon { font-size: 48px; margin-bottom: 12px; }
+  .welcome h2 { font-size: 22px; color: var(--text); margin-bottom: 8px; }
+  .welcome p { line-height: 1.7; max-width: 480px; margin: 0 auto 28px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .chip {
+    padding: 8px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    color: var(--text);
+  }
+  .chip:hover { border-color: var(--blue); background: rgba(88,166,255,.08); }
+
+  /* ── Message row ── */
+  .msg-row { display: flex; gap: 10px; max-width: 820px; }
+  .msg-row.user { align-self: flex-end; flex-direction: row-reverse; max-width: 65%; }
+  .msg-row.bot  { align-self: flex-start; width: 100%; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0; margin-top: 2px;
+  }
+  .user .avatar { background: linear-gradient(135deg, #4f46e5, #a371f7); }
+  .bot  .avatar { background: linear-gradient(135deg, #058a3a, #3fb950); }
+
+  /* ── Bubbles ── */
+  .bubble {
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    line-height: 1.65;
+    font-size: 13.5px;
+  }
+  .user .bubble {
+    background: linear-gradient(135deg, #4f46e5, #6d28d9);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .bot .bubble {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+
+  /* ── Typing indicator ── */
+  .typing {
+    display: flex; gap: 5px;
+    padding: 12px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted);
+    animation: bounce 1.4s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: .18s; }
+  .dot:nth-child(3) { animation-delay: .36s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: .4; }
+    30%            { transform: translateY(-7px); opacity: 1; }
+  }
+
+  /* ── Trust card ── */
+  .trust-card {
+    margin-top: 10px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .trust-top {
+    padding: 14px 16px;
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 12px;
+  }
+  .badge {
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .badge.trusted    { background: rgba(63,185,80,.15);  color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+  .badge.suspicious { background: rgba(227,179,65,.15); color: var(--amber); border: 1px solid rgba(227,179,65,.3); }
+  .badge.hallucinated { background: rgba(248,81,73,.15);color: var(--red);   border: 1px solid rgba(248,81,73,.3); }
+  .score-block { text-align: right; }
+  .score-num { font-size: 28px; font-weight: 800; line-height: 1; }
+  .score-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    padding: 0 16px 12px;
+  }
+  .metric-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .metric-title {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 8px;
+  }
+  .metric-value {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .metric-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .metric-bar {
+    margin-top: 10px;
+    height: 6px;
+    background: var(--bg);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .metric-bar > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    transition: width 1.1s cubic-bezier(.22,1,.36,1);
+  }
+  .metric-bar .risk-fill { background: linear-gradient(90deg, #f85149, #d29922, #2ea043); }
+  .metric-bar .confidence-fill { background: linear-gradient(90deg, #58a6ff, #3fb950); }
+
+  .bar-wrap {
+    padding: 0 16px 12px;
+  }
+  .bar-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+  .bar-track {
+    height: 7px; background: var(--bg); border-radius: 999px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 999px; width: 0;
+    transition: width 1.1s cubic-bezier(.22,1,.36,1);
+  }
+  .bar-fill.trusted    { background: linear-gradient(90deg, #3fb950, #2ea043); }
+  .bar-fill.suspicious { background: linear-gradient(90deg, #e3b341, #d29922); }
+  .bar-fill.hallucinated { background: linear-gradient(90deg, #f85149, #da3633); }
+
+  .trust-summary {
+    padding: 0 16px 12px;
+    font-size: 12.5px; color: var(--muted); line-height: 1.6;
+  }
+  .flags { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 16px 12px; }
+  .flag-tag {
+    padding: 2px 9px;
+    background: rgba(248,81,73,.1);
+    color: var(--red);
+    border: 1px solid rgba(248,81,73,.2);
+    border-radius: 999px; font-size: 11px;
+  }
+
+  /* ── Expandable sections ── */
+  .expand { border-top: 1px solid var(--border); }
+  .expand-hdr {
+    padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none; font-size: 12.5px; font-weight: 600;
+    background: var(--bg2); transition: background .15s;
+  }
+  .expand-hdr:hover { background: var(--bg3); }
+  .expand-hdr span.arrow { font-size: 10px; transition: transform .25s; }
+  .expand-hdr.open span.arrow { transform: rotate(180deg); }
+  .expand-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height .3s ease;
+  }
+  .expand-body.open { max-height: 600px; overflow-y: auto; }
+  .expand-inner { padding: 12px 16px; }
+
+  /* ── Claims ── */
+  .claim {
+    padding: 9px 11px; border-radius: 8px; margin-bottom: 8px; font-size: 12.5px;
+  }
+  .claim:last-child { margin-bottom: 0; }
+  .claim.supported   { background: rgba(63,185,80,.07);  border-left: 3px solid var(--green); }
+  .claim.unsupported { background: rgba(227,179,65,.07); border-left: 3px solid var(--amber); }
+  .claim.contradicted{ background: rgba(248,81,73,.07);  border-left: 3px solid var(--red); }
+  .claim-verdict {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; margin-bottom: 3px;
+  }
+  .claim.supported   .claim-verdict { color: var(--green); }
+  .claim.unsupported .claim-verdict { color: var(--amber); }
+  .claim.contradicted .claim-verdict { color: var(--red); }
+  .claim-text  { color: var(--text); margin-bottom: 3px; }
+  .claim-reason { color: var(--muted); font-size: 11.5px; }
+
+  /* ── Sources ── */
+  .source-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12.5px;
+  }
+  .source-item:last-child { border-bottom: none; }
+  .source-item a {
+    color: var(--blue); text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1;
+  }
+  .source-item a:hover { text-decoration: underline; }
+
+  /* ── Input area ── */
+  .input-area {
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 12px 16px;
+  }
+  .input-row {
+    display: flex; gap: 10px; align-items: flex-end;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    transition: border-color .2s;
+  }
+  .input-row:focus-within { border-color: var(--blue); }
+  .input-row textarea {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text); font-size: 13.5px; font-family: inherit;
+    resize: none; min-height: 22px; max-height: 110px; line-height: 1.5;
+  }
+  .input-row textarea::placeholder { color: var(--muted); }
+  .send-btn {
+    width: 34px; height: 34px; flex-shrink: 0;
+    background: linear-gradient(135deg, #4f46e5, #6d28d9);
+    border: none; border-radius: 9px; cursor: pointer;
+    color: #fff; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity .2s, transform .1s;
+  }
+  .send-btn:hover:not(:disabled) { opacity: .88; }
+  .send-btn:active:not(:disabled) { transform: scale(.94); }
+  .send-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .hint { text-align: center; font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* ── Streaming cursor ── */
+  .cursor {
+    display: inline-block;
+    width: 2px; height: 1em;
+    background: var(--text);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink-cursor 1s step-end infinite;
+  }
+  @keyframes blink-cursor {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+  .verifying-indicator {
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .spin-icon { display: inline-block; animation: spin 1.4s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* ── Error bubble ── */
+  .err-bubble {
+    padding: 10px 14px; border-radius: var(--radius);
+    border-bottom-left-radius: 4px;
+    background: rgba(248,81,73,.1);
+    border: 1px solid rgba(248,81,73,.3);
+    color: var(--red); font-size: 13px;
+  }
+  .info-bubble {
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    border-bottom-left-radius: 4px;
+    background: rgba(88,166,255,.09);
+    border: 1px solid rgba(88,166,255,.22);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .info-bubble strong { color: var(--blue); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">🛡️</div>
+  <div class="header-info">
+    <h1>TruthGuard AI</h1>
+    <p>Stripe Documentation Assistant · Hallucination Detection · RAG-powered</p>
+  </div>
+  <div class="header-pill" id="wsStatus">● Connecting</div>
+  <a class="portal-link" href="/agent" target="_blank" rel="noopener noreferrer">Open Agent Portal</a>
+</div>
+
+<div class="chat-scroll" id="chat">
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon">🛡️</div>
+    <h2>Ask anything about Stripe</h2>
+    <p>I answer strictly from Stripe's official documentation and run every response
+       through a two-layer fact-checking pipeline to detect hallucinations.</p>
+    <div class="chips">
+      <div class="chip" onclick="ask('How do I create a PaymentIntent?')">How do I create a PaymentIntent?</div>
+      <div class="chip" onclick="ask('What are Stripe webhooks and how do I verify them?')">What are webhooks &amp; how to verify?</div>
+      <div class="chip" onclick="ask('How does Stripe Billing work?')">How does Stripe Billing work?</div>
+      <div class="chip" onclick="ask('What is Stripe Connect used for?')">What is Stripe Connect?</div>
+      <div class="chip" onclick="ask('How do I handle 3D Secure authentication?')">3D Secure authentication</div>
+      <div class="chip" onclick="ask('What payment methods does Stripe support?')">Supported payment methods</div>
+    </div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <textarea
+      id="qInput"
+      placeholder="Ask about Stripe payments, APIs, billing, webhooks…"
+      rows="1"
+      onkeydown="onKey(event)"
+      oninput="resize(this)"
+    ></textarea>
+    <button class="send-btn" id="sendBtn" onclick="submitQuery()" title="Send (Enter)">&#9654;</button>
+  </div>
+  <div class="hint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line</div>
+</div>
+
+<script>
+let msgId = 0;
+const sessionId = (() => {
+  const key = 'truthguard-session-id';
+  const existing = localStorage.getItem(key);
+  if (existing) return existing;
+  const created = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+  localStorage.setItem(key, created);
+  return created;
+})();
+let chatSocket = null;
+let reconnectTimer = null;
+
+/* ── Streaming state ── */
+let streamMsgId    = null;
+let streamWrapperEl = null;
+let streamTextEl   = null;
+
+/* ── Utilities ── */
+function esc(s) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(s || ''));
+  return d.innerHTML;
+}
+function fmt(s) { return esc(s).replace(/\n/g, '<br>'); }
+
+function resize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+}
+
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitQuery(); }
+}
+
+function ask(q) {
+  document.getElementById('qInput').value = q;
+  submitQuery();
+}
+
+function scrollBottom() {
+  const c = document.getElementById('chat');
+  c.scrollTop = c.scrollHeight;
+}
+
+function setSocketStatus(text, tone = 'green') {
+  const el = document.getElementById('wsStatus');
+  if (!el) return;
+  el.textContent = `● ${text}`;
+  el.style.color = tone === 'red' ? 'var(--red)' : tone === 'amber' ? 'var(--amber)' : 'var(--green)';
+  el.style.borderColor = tone === 'red' ? 'rgba(248,81,73,.25)' : tone === 'amber' ? 'rgba(227,179,65,.25)' : 'rgba(63,185,80,.25)';
+  el.style.background = tone === 'red' ? 'rgba(248,81,73,.12)' : tone === 'amber' ? 'rgba(227,179,65,.12)' : 'rgba(63,185,80,.12)';
+}
+
+/* ── DOM helpers ── */
+function removeWelcome() {
+  const w = document.getElementById('welcome');
+  if (w) w.remove();
+}
+
+function appendRow(html) {
+  const chat = document.getElementById('chat');
+  const el = document.createElement('div');
+  el.innerHTML = html;
+  chat.appendChild(el.firstElementChild);
+  scrollBottom();
+  return chat.lastElementChild;
+}
+
+function addUserBubble(text) {
+  removeWelcome();
+  appendRow(`
+    <div class="msg-row user">
+      <div class="avatar">👤</div>
+      <div class="bubble">${fmt(text)}</div>
+    </div>`);
+}
+
+function addTyping() {
+  removeWelcome();
+  const chat = document.getElementById('chat');
+  const el = document.createElement('div');
+  el.id = 'typing-row';
+  el.className = 'msg-row bot';
+  el.innerHTML = `
+    <div class="avatar">🛡️</div>
+    <div class="typing">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>`;
+  chat.appendChild(el);
+  scrollBottom();
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-row');
+  if (el) el.remove();
+}
+
+function addInfoBubble(title, text) {
+  removeWelcome();
+  appendRow(`
+    <div class="msg-row bot">
+      <div class="avatar">🛡️</div>
+      <div class="info-bubble"><strong>${esc(title)}:</strong> ${fmt(text)}</div>
+    </div>`);
+}
+
+/* ── Toggle expand ── */
+function toggle(id) {
+  const hdr  = document.getElementById('hdr-' + id);
+  const body = document.getElementById('bdy-' + id);
+  hdr.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+/* ── Streaming handlers ── */
+function handleStreamStart() {
+  removeTyping();
+  removeWelcome();
+  const id = ++msgId;
+  streamMsgId = id;
+
+  const row = document.createElement('div');
+  row.id        = 'stream-row-' + id;
+  row.className = 'msg-row bot';
+  row.innerHTML = `
+    <div class="avatar">🛡️</div>
+    <div style="flex:1;min-width:0" id="stream-wrapper-${id}">
+      <div class="bubble" id="stream-bubble-${id}"><span id="stream-text-${id}"></span><span class="cursor"></span></div>
+    </div>`;
+  document.getElementById('chat').appendChild(row);
+  scrollBottom();
+
+  streamWrapperEl = document.getElementById('stream-wrapper-' + id);
+  streamTextEl    = document.getElementById('stream-text-'  + id);
+}
+
+function handleToken(text) {
+  if (!streamTextEl) return;
+  streamTextEl.textContent += text;
+  scrollBottom();
+}
+
+function handleStreamEnd() {
+  if (streamMsgId === null) return;
+  const row = document.getElementById('stream-row-' + streamMsgId);
+  if (row) { const cur = row.querySelector('.cursor'); if (cur) cur.remove(); }
+  if (streamWrapperEl) {
+    const div = document.createElement('div');
+    div.id        = 'verifying-' + streamMsgId;
+    div.className = 'verifying-indicator';
+    div.innerHTML = '<span class="spin-icon">⚙</span> Verifying response…';
+    streamWrapperEl.appendChild(div);
+  }
+}
+
+function _removeVerifying() {
+  if (streamMsgId === null) return;
+  const el = document.getElementById('verifying-' + streamMsgId);
+  if (el) el.remove();
+}
+
+/* ── Trust card HTML builder (shared by streaming + non-streaming paths) ── */
+function _buildTrustCardHtml(data, id) {
+  const cons  = data.consistency || {};
+  const conf  = data.confidence  || {};
+  const fc    = data.fact_check  || {};
+  const label = (cons.label || 'SUSPICIOUS').toLowerCase();
+  const claims  = fc.claims   || [];
+  const sources = data.sources || [];
+  const flags   = cons.additional_flags || [];
+
+  const claimsHtml = claims.map(c => {
+    const v = (c.verdict || '').toLowerCase();
+    return `<div class="claim ${v}">
+      <div class="claim-verdict">${esc(c.verdict)}</div>
+      <div class="claim-text">${esc(c.claim)}</div>
+      <div class="claim-reason">${esc(c.reason)}</div>
+    </div>`;
+  }).join('');
+
+  const sourcesHtml = sources.map(s =>
+    `<div class="source-item"><span>🔗</span>
+       <a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title || s.url)}</a>
+     </div>`
+  ).join('');
+
+  const flagsHtml = flags.length
+    ? `<div class="flags">${flags.map(f => `<span class="flag-tag">${esc(f)}</span>`).join('')}</div>`
+    : '';
+
+  const claimsSection = claims.length ? `
+    <div class="expand">
+      <div class="expand-hdr" id="hdr-claims-${id}" onclick="toggle('claims-${id}')">
+        <span>📋 Claim Verification — ${claims.length} claim${claims.length !== 1 ? 's' : ''}</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="expand-body" id="bdy-claims-${id}"><div class="expand-inner">${claimsHtml}</div></div>
+    </div>` : '';
+
+  const sourcesSection = sources.length ? `
+    <div class="expand">
+      <div class="expand-hdr" id="hdr-src-${id}" onclick="toggle('src-${id}')">
+        <span>📚 Sources — ${sources.length} page${sources.length !== 1 ? 's' : ''}</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="expand-body" id="bdy-src-${id}"><div class="expand-inner">${sourcesHtml}</div></div>
+    </div>` : '';
+
+  return `
+    <div class="trust-card">
+      <div class="trust-top">
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:5px">Trust Assessment</div>
+          <span class="badge ${label}">${cons.label || 'SUSPICIOUS'}</span>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px">${esc(fc.overall_verdict ? 'Fact-check: ' + fc.overall_verdict : '')}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">${esc(conf.confidence_score != null ? 'Confidence label: ' + (conf.confidence_label || '').replaceAll('_', ' ') : '')}</div>
+        </div>
+        <div class="score-block">
+          <div class="score-num" id="snum-${id}" style="color:${label==='trusted'?'var(--green)':label==='suspicious'?'var(--amber)':'var(--red)'}">0</div>
+          <div class="score-sub">Hallucination Score</div>
+        </div>
+      </div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-title">Hallucination Risk</div>
+          <div class="metric-value" id="risk-num-${id}" style="color:${label==='trusted'?'var(--green)':label==='suspicious'?'var(--amber)':'var(--red)'}">0</div>
+          <div class="metric-sub">${esc((cons.label || 'SUSPICIOUS') + ' · lower is better')}</div>
+          <div class="metric-bar"><span class="risk-fill" id="risk-bar-${id}"></span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Confidence Score</div>
+          <div class="metric-value" id="conf-num-${id}" style="color:var(--blue)">0</div>
+          <div class="metric-sub">${esc((conf.confidence_label || 'UNKNOWN').replaceAll('_', ' ') + ' · higher is better')}</div>
+          <div class="metric-bar"><span class="confidence-fill" id="conf-bar-${id}"></span></div>
+        </div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-label">Risk Level (0 = safe, 100 = high risk)</div>
+        <div class="bar-track"><div class="bar-fill ${label}" id="sbar-${id}"></div></div>
+      </div>
+      <div class="trust-summary">${esc(cons.final_summary || fc.summary || '')}${conf.reasoning_summary ? '<br><br><strong>Confidence:</strong> ' + esc(conf.reasoning_summary) : ''}</div>
+      ${flagsHtml}${claimsSection}${sourcesSection}
+    </div>`;
+}
+
+function _animateScores(id, score, confidenceScore) {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const bar = document.getElementById('sbar-' + id);
+      if (bar) bar.style.width = score + '%';
+      const riskBar = document.getElementById('risk-bar-' + id);
+      if (riskBar) riskBar.style.width = score + '%';
+      const confBar = document.getElementById('conf-bar-' + id);
+      if (confBar) confBar.style.width = confidenceScore + '%';
+
+      const numEl = document.getElementById('snum-' + id);
+      let cur = 0; const step = score / 50;
+      const iv = setInterval(() => {
+        cur = Math.min(cur + step, score);
+        if (numEl) numEl.textContent = Math.round(cur);
+        const riskNumEl = document.getElementById('risk-num-' + id);
+        if (riskNumEl) riskNumEl.textContent = Math.round(cur);
+        if (cur >= score) clearInterval(iv);
+      }, 20);
+
+      const confNumEl = document.getElementById('conf-num-' + id);
+      let confCur = 0; const confStep = confidenceScore / 50;
+      const confIv = setInterval(() => {
+        confCur = Math.min(confCur + confStep, confidenceScore);
+        if (confNumEl) confNumEl.textContent = Math.round(confCur);
+        if (confCur >= confidenceScore) clearInterval(confIv);
+      }, 20);
+    });
+  });
+}
+
+/* ── trust_card event: append trust card to the streaming bubble ── */
+function handleTrustCard(data) {
+  _removeVerifying();
+  const cons = data.consistency || {};
+  const conf = data.confidence  || {};
+  const id   = streamMsgId;
+  const score           = Math.min(100, Math.max(0, cons.hallucination_score || 0));
+  const confidenceScore = Math.min(100, Math.max(0, Number(conf.confidence_score || 0)));
+
+  if (streamWrapperEl) {
+    streamWrapperEl.insertAdjacentHTML('beforeend', _buildTrustCardHtml(data, id));
+    _animateScores(id, score, confidenceScore);
+    streamWrapperEl = null;
+    streamTextEl    = null;
+  } else {
+    renderResponse(data);
+  }
+}
+
+/* ── Full-row render (fallback / answer event) ── */
+function renderResponse(data) {
+  const id = ++msgId;
+  const cons = data.consistency || {};
+  const conf = data.confidence  || {};
+  const score           = Math.min(100, Math.max(0, cons.hallucination_score || 0));
+  const confidenceScore = Math.min(100, Math.max(0, Number(conf.confidence_score || 0)));
+
+  appendRow(`
+    <div class="msg-row bot">
+      <div class="avatar">🛡️</div>
+      <div style="flex:1;min-width:0">
+        <div class="bubble">${fmt(data.answer || '')}</div>
+        ${_buildTrustCardHtml(data, id)}
+      </div>
+    </div>`);
+  _animateScores(id, score, confidenceScore);
+}
+
+function renderHumanResponse(data) {
+  const answer    = data.answer   || '';
+  const reviewer  = data.reviewer || 'Human Agent';
+  const trigger   = data.trigger  || 'HALLUCINATED';
+  const label     = data.original_consistency?.label || 'HALLUCINATED';
+  const confidence = data.original_confidence?.confidence_score ?? 'n/a';
+  const reason = trigger === 'INSUFFICIENT_INFO'
+    ? 'The AI did not have enough information in the Stripe docs to answer this — a human agent stepped in.'
+    : 'This response was routed through the agent portal because the original AI draft was flagged for hallucination risk.';
+  appendRow(`
+    <div class="msg-row bot">
+      <div class="avatar">👩‍💼</div>
+      <div style="flex:1;min-width:0">
+        <div class="bubble">${fmt(answer)}</div>
+        <div class="trust-card">
+          <div class="trust-top">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:5px">Human Intervention</div>
+              <span class="badge suspicious">Reviewed</span>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px">${esc('Reviewer: ' + reviewer)}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px">${esc('Reason: ' + (trigger === 'INSUFFICIENT_INFO' ? 'Insufficient Info' : 'AI label: ' + label) + ' · Confidence: ' + confidence)}</div>
+            </div>
+          </div>
+          <div class="trust-summary">${esc(reason)}</div>
+        </div>
+      </div>
+    </div>`);
+}
+
+function handleSocketEvent(event) {
+  const type = event.type;
+
+  if (type === 'connected')    { setSocketStatus('Connected'); return; }
+  if (type === 'processing')   { return; }
+  if (type === 'stream_start') { handleStreamStart(); return; }
+  if (type === 'token')        { handleToken(event.text || ''); return; }
+  if (type === 'stream_end')   { handleStreamEnd(); return; }
+  if (type === 'trust_card')   { handleTrustCard(event.payload || {}); return; }
+
+  if (type === 'answer') {
+    removeTyping();
+    renderResponse(event.payload || {});
+    return;
+  }
+
+  if (type === 'needs_review') {
+    removeTyping();
+    _removeVerifying();
+    const trigger = event.trigger || 'HALLUCINATED';
+    const title = trigger === 'INSUFFICIENT_INFO' ? 'Forwarded to Human Agent' : 'Human Review Triggered';
+    const msg   = event.message || `Sent to agent portal as task ${event.task_id}.`;
+    if (streamWrapperEl) {
+      streamWrapperEl.insertAdjacentHTML('beforeend',
+        `<div class="info-bubble" style="margin-top:8px"><strong>${esc(title)}:</strong> ${fmt(msg)}</div>`
+      );
+      streamWrapperEl = null;
+      streamTextEl    = null;
+    } else {
+      addInfoBubble(title, msg);
+    }
+    return;
+  }
+
+  if (type === 'human_response') {
+    removeTyping();
+    renderHumanResponse(event.payload || {});
+    return;
+  }
+
+  if (type === 'error') {
+    removeTyping();
+    _removeVerifying();
+    streamWrapperEl = null;
+    streamTextEl    = null;
+    appendRow(`
+      <div class="msg-row bot">
+        <div class="avatar">🛡️</div>
+        <div class="err-bubble"><strong>Error:</strong> ${esc(event.detail || 'Unknown error')}</div>
+      </div>`);
+  }
+}
+
+function connectSocket() {
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const WS_BASE = isLocal ? `ws://${location.host}` : 'wss://truthguard-ai-yyf7.onrender.com';
+  chatSocket = new WebSocket(`${WS_BASE}/ws/chat/${sessionId}`);
+
+  chatSocket.addEventListener('open', () => {
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+    setSocketStatus('Connected');
+  });
+
+  chatSocket.addEventListener('message', (ev) => {
+    try { handleSocketEvent(JSON.parse(ev.data)); }
+    catch (err) { console.error('Bad socket payload', err); }
+  });
+
+  chatSocket.addEventListener('close', () => {
+    setSocketStatus('Reconnecting', 'amber');
+    reconnectTimer = setTimeout(connectSocket, 1500);
+  });
+
+  chatSocket.addEventListener('error', () => setSocketStatus('Disconnected', 'red'));
+}
+
+function sendSocket(payload) {
+  if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+    throw new Error('WebSocket is not connected yet. Please wait a moment and try again.');
+  }
+  chatSocket.send(JSON.stringify(payload));
+}
+
+/* ── Submit ── */
+function submitQuery() {
+  const input   = document.getElementById('qInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const query   = input.value.trim();
+  if (!query) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  addUserBubble(query);
+  addTyping();
+
+  try {
+    sendSocket({ type: 'ask', question: query });
+  } catch (err) {
+    removeTyping();
+    appendRow(`
+      <div class="msg-row bot">
+        <div class="avatar">🛡️</div>
+        <div class="err-bubble"><strong>Error:</strong> ${esc(err.message)}</div>
+      </div>`);
+  } finally {
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
+
+connectSocket();
+</script>
+</body>
+</html>
