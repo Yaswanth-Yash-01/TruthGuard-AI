@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: truthguard-ai
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_INDEX_NAME
+        sync: false
+      - key: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://localhost:4318
+      - key: PYTHON_VERSION
+        value: "3.11"
