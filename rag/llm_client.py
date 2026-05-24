@@ -3,16 +3,16 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import time
-import anthropic
+import cohere
 from opentelemetry import trace as _otel_trace, metrics as _otel_metrics
 
-from config.settings import ANTHROPIC_API_KEY, LLM_MODEL
+from config.settings import COHERE_API_KEY, LLM_MODEL
 
 _tracer = _otel_trace.get_tracer(__name__)
 _llm_duration_hist = None
 
-_client: anthropic.Anthropic | None = None
-_async_client: anthropic.AsyncAnthropic | None = None
+_client: cohere.Client | None = None
+_async_client: cohere.AsyncClient | None = None
 
 
 def _get_llm_duration_hist():
@@ -24,17 +24,17 @@ def _get_llm_duration_hist():
     return _llm_duration_hist
 
 
-def _get_client() -> anthropic.Anthropic:
+def _get_client() -> cohere.Client:
     global _client
     if _client is None:
-        _client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+        _client = cohere.Client(api_key=COHERE_API_KEY)
     return _client
 
 
-def _get_async_client() -> anthropic.AsyncAnthropic:
+def _get_async_client() -> cohere.AsyncClient:
     global _async_client
     if _async_client is None:
-        _async_client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+        _async_client = cohere.AsyncClient(api_key=COHERE_API_KEY)
     return _async_client
 
 
@@ -49,7 +49,7 @@ def call_llm(
     _attempt: int = 0,
 ) -> str:
     if _attempt >= 5:
-        raise RuntimeError("Claude is currently overloaded. Try again in a moment.")
+        raise RuntimeError("Cohere is currently unavailable. Try again in a moment.")
 
     t0 = time.time()
     with _tracer.start_as_current_span("llm.call") as span:
@@ -59,27 +59,15 @@ def call_llm(
         span.set_attribute("llm.prompt_chars", len(system_prompt) + len(user_prompt))
         try:
             client = _get_client()
-
-            kwargs: dict = {
-                "model": LLM_MODEL,
-                "max_tokens": 4096,
-                "temperature": temperature,
-                "messages": [{"role": "user", "content": user_prompt}],
-            }
+            kwargs: dict = dict(model=LLM_MODEL, message=user_prompt, temperature=temperature)
             if system_prompt:
-                kwargs["system"] = [
-                    {
-                        "type": "text",
-                        "text": system_prompt,
-                        "cache_control": {"type": "ephemeral"},
-                    }
-                ]
+                kwargs["preamble"] = system_prompt
 
-            response = client.messages.create(**kwargs)
-            text = response.content[0].text if response.content else ""
+            response = client.chat(**kwargs)
+            text = response.text or ""
 
             if not text:
-                raise RuntimeError("Received an empty response from Claude.")
+                raise RuntimeError("Received an empty response from Cohere.")
 
             elapsed_ms = (time.time() - t0) * 1000
             span.set_attribute("llm.response_chars", len(text))
@@ -87,26 +75,16 @@ def call_llm(
             _get_llm_duration_hist().record(elapsed_ms, {"llm.model": LLM_MODEL})
             return text
 
-        except anthropic.RateLimitError:
-            wait = 15 * (2 ** _attempt)
-            span.set_attribute("llm.error", "rate_limited_429")
-            print(f"  Claude rate limited — waiting {wait}s...")
-            time.sleep(wait)
-            return call_llm(system_prompt, user_prompt, temperature, _attempt + 1)
-
-        except anthropic.APIStatusError as exc:
-            if exc.status_code == 529:
-                wait = 5 * (2 ** _attempt)
-                span.set_attribute("llm.error", "overloaded_529")
-                print(f"  Claude overloaded — waiting {wait}s...")
+        except Exception as exc:
+            msg = str(exc)
+            span.record_exception(exc)
+            if "429" in msg or "rate" in msg.lower() or "too many" in msg.lower():
+                wait = 15 * (2 ** _attempt)
+                span.set_attribute("llm.error", "rate_limited")
+                print(f"  Cohere rate limited — waiting {wait}s...")
                 time.sleep(wait)
                 return call_llm(system_prompt, user_prompt, temperature, _attempt + 1)
-            span.record_exception(exc)
-            raise RuntimeError(f"Claude API error {exc.status_code}: {exc.message}") from exc
-
-        except Exception as exc:
-            span.record_exception(exc)
-            raise RuntimeError(f"LLM call failed: {exc}") from exc
+            raise RuntimeError(f"Cohere LLM call failed: {exc}") from exc
 
 
 async def astream_llm(
@@ -114,31 +92,20 @@ async def astream_llm(
     user_prompt: str,
     temperature: float = 0.1,
 ):
-    """Async generator — yields text chunks as they stream from Claude."""
+    """Async generator — yields text chunks as they stream from Cohere."""
     with _tracer.start_as_current_span("llm.stream") as span:
         span.set_attribute("llm.model", LLM_MODEL)
         span.set_attribute("llm.temperature", temperature)
 
         client = _get_async_client()
-
-        kwargs: dict = {
-            "model": LLM_MODEL,
-            "max_tokens": 4096,
-            "temperature": temperature,
-            "messages": [{"role": "user", "content": user_prompt}],
-        }
+        kwargs: dict = dict(model=LLM_MODEL, message=user_prompt, temperature=temperature)
         if system_prompt:
-            kwargs["system"] = [
-                {
-                    "type": "text",
-                    "text": system_prompt,
-                    "cache_control": {"type": "ephemeral"},
-                }
-            ]
+            kwargs["preamble"] = system_prompt
 
         total_chars = 0
-        async with client.messages.stream(**kwargs) as stream:
-            async for text in stream.text_stream:
+        async for event in client.chat_stream(**kwargs):
+            if event.event_type == "text-generation":
+                text = event.text
                 if text:
                     total_chars += len(text)
                     yield text
