@@ -215,8 +215,7 @@ async def lifespan(app: FastAPI):
         print(f"  WARNING — embedding warmup: {exc}")
     try:
         from rag.llm_client import get_llm_model
-        llm = await loop.run_in_executor(None, get_llm_model)
-        print(f"  LLM model:       {llm}")
+        print(f"  LLM model:       {get_llm_model()}")
     except Exception as exc:
         print(f"  WARNING — LLM warmup: {exc}")
     yield
