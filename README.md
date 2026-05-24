@@ -1,4 +1,4 @@
-# TruthGuard AI
+# TruthGuard AI : Live - https://truthguardstrip.netlify.app
 
 AI-powered Stripe documentation assistant with a two-layer hallucination detection pipeline.
 Built with LangGraph, LangChain, Gemini 1.5 Flash, Pinecone, and FastAPI.
