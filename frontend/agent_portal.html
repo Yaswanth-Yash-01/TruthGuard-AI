@@ -9,341 +9,226 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #ffffff;
-    --bg2:       #f8fafc;
-    --bg3:       #f1f5f9;
-    --border:    #e2e8f0;
-    --border2:   #cbd5e1;
-    --text:      #0f172a;
-    --muted:     #64748b;
-    --muted2:    #94a3b8;
-    --blue:      #2563eb;
-    --blue-dim:  #eff6ff;
-    --blue-mid:  #bfdbfe;
-    --green:     #16a34a;
-    --green-dim: #f0fdf4;
-    --amber:     #d97706;
-    --amber-dim: #fffbeb;
-    --red:       #dc2626;
-    --red-dim:   #fef2f2;
-    --radius:    12px;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
-    --shadow:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -2px rgba(0,0,0,.04);
+    --white:   #ffffff;
+    --black:   #0a0a0a;
+    --gray-50: #fafafa;
+    --gray-100:#f4f4f4;
+    --gray-200:#e8e8e8;
+    --gray-300:#d4d4d4;
+    --gray-400:#a3a3a3;
+    --gray-500:#737373;
+    --gray-700:#404040;
+    --radius:  12px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.07);
+    --shadow:    0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-md: 0 4px 8px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.05);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg2);
-    color: var(--text);
+    background: var(--gray-100);
+    color: var(--black);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* ── Top nav ── */
+  /* ── Topbar ── */
   .topbar {
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
     padding: 0 28px;
-    height: 58px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    position: sticky;
-    top: 0;
-    z-index: 20;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    position: sticky; top: 0; z-index: 20;
   }
   .logo-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-    color: inherit;
-  }
-  .logo-icon {
-    width: 32px; height: 32px;
-    background: var(--blue);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .logo-label h1 { font-size: 14px; font-weight: 700; letter-spacing: -.02em; }
-  .logo-label p  { font-size: 11px; color: var(--muted); margin-top: 1px; }
-  .topbar-right {
     display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: inherit;
   }
+  .logo-mark {
+    width: 32px; height: 32px;
+    background: var(--black); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: var(--white);
+    letter-spacing: -.02em; flex-shrink: 0;
+  }
+  .logo-label h1 { font-size: 14.5px; font-weight: 700; letter-spacing: -.02em; }
+  .logo-label p  { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
   .status-pill {
     display: inline-flex; align-items: center; gap: 5px;
-    background: var(--green-dim);
-    color: var(--green);
-    border: 1px solid rgba(22,163,74,.2);
-    border-radius: 999px;
-    padding: 4px 11px;
+    background: var(--gray-100); color: var(--gray-500);
+    border: 1px solid var(--gray-200);
+    border-radius: 999px; padding: 4px 11px;
     font-size: 11.5px; font-weight: 600;
   }
   .back-link {
     display: inline-flex; align-items: center; gap: 5px;
-    color: var(--muted); text-decoration: none;
-    font-size: 13px; font-weight: 500;
-    padding: 5px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    transition: all .15s;
+    color: var(--gray-500); text-decoration: none;
+    font-size: 12.5px; font-weight: 500;
+    padding: 5px 12px; border: 1px solid var(--gray-200);
+    border-radius: 8px; background: var(--white); transition: all .15s;
   }
-  .back-link:hover { border-color: var(--border2); color: var(--text); }
+  .back-link:hover { border-color: var(--gray-300); color: var(--black); }
 
-  /* ── Page shell ── */
-  .page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 28px 28px 40px;
-  }
-
-  /* ── Page header ── */
-  .page-header {
-    margin-bottom: 24px;
-  }
+  /* ── Page ── */
+  .page { max-width: 1200px; margin: 0 auto; padding: 28px 28px 48px; }
+  .page-header { margin-bottom: 22px; }
   .page-header h2 {
-    font-size: 22px; font-weight: 800;
-    letter-spacing: -.03em; color: var(--text);
+    font-size: 22px; font-weight: 800; letter-spacing: -.03em;
     margin-bottom: 5px;
   }
-  .page-header p { font-size: 13.5px; color: var(--muted); line-height: 1.6; max-width: 560px; }
+  .page-header p { font-size: 13.5px; color: var(--gray-500); line-height: 1.6; max-width: 560px; }
 
   /* ── Layout ── */
-  .layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 18px;
-    align-items: start;
-  }
+  .layout { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
 
   /* ── Sidebar ── */
   .sidebar {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    position: sticky;
-    top: 80px;
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    overflow: hidden; position: sticky; top: 72px;
   }
-  .sidebar-header {
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--border);
+  .sidebar-hdr {
+    padding: 14px 18px; border-bottom: 1px solid var(--gray-200);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .sidebar-header h3 {
-    font-size: 12px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
+  .sidebar-hdr h3 {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--gray-400);
   }
   .queue-badge {
-    background: var(--blue); color: white;
+    background: var(--black); color: var(--white);
     border-radius: 999px; padding: 1px 8px;
-    font-size: 11px; font-weight: 700;
-    min-width: 20px; text-align: center;
+    font-size: 11px; font-weight: 700; min-width: 20px; text-align: center;
   }
-  .queue-badge.zero { background: var(--bg3); color: var(--muted2); }
+  .queue-badge.zero { background: var(--gray-200); color: var(--gray-400); }
   .task-list {
-    padding: 10px;
-    display: flex; flex-direction: column; gap: 6px;
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
+    padding: 8px; display: flex; flex-direction: column; gap: 5px;
+    max-height: calc(100vh - 200px); overflow-y: auto;
   }
   .task-list::-webkit-scrollbar { width: 3px; }
-  .task-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .task-list::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 2px; }
   .task-btn {
-    width: 100%;
-    text-align: left;
-    background: var(--bg);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 12px 14px;
-    cursor: pointer;
-    transition: all .15s;
-    font-family: inherit;
+    width: 100%; text-align: left;
+    background: var(--white); color: var(--black);
+    border: 1px solid var(--gray-200); border-radius: 9px;
+    padding: 12px 13px; cursor: pointer;
+    transition: all .15s; font-family: inherit;
   }
   .task-btn:hover, .task-btn.active {
-    border-color: var(--blue);
-    background: var(--blue-dim);
+    border-color: var(--black); background: var(--gray-50);
   }
-  .task-btn .task-id {
-    font-size: 11px; font-weight: 700; color: var(--muted);
+  .task-id {
+    font-size: 11px; font-weight: 700; color: var(--gray-400);
     font-family: 'SF Mono', 'Fira Code', monospace;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
     display: flex; align-items: center; justify-content: space-between;
   }
-  .task-btn .task-q {
-    font-size: 12.5px; color: var(--text); font-weight: 500;
+  .task-q {
+    font-size: 12.5px; color: var(--black); font-weight: 500;
     line-height: 1.45;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
   .trigger-tag {
-    display: inline-block;
-    padding: 1px 6px; border-radius: 4px;
+    display: inline-block; padding: 1px 6px; border-radius: 4px;
     font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
   }
-  .trigger-tag.hallucinated { background: var(--red-dim); color: var(--red); }
-  .trigger-tag.insufficient { background: var(--amber-dim); color: var(--amber); }
+  .trigger-tag.hallucinated { background: var(--black); color: var(--white); }
+  .trigger-tag.insufficient { background: var(--gray-200); color: var(--gray-700); border: 1px solid var(--gray-300); }
   .empty-state {
-    padding: 24px 18px;
-    text-align: center;
-    color: var(--muted2);
-    font-size: 13px;
-    line-height: 1.6;
+    padding: 24px 18px; text-align: center;
+    color: var(--gray-400); font-size: 13px; line-height: 1.6;
   }
 
   /* ── Workspace ── */
   .workspace {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
   }
-  .workspace-header {
-    padding: 16px 22px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
+  .workspace-hdr {
+    padding: 14px 22px; border-bottom: 1px solid var(--gray-200);
   }
-  .workspace-header h3 {
-    font-size: 12px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
+  .workspace-hdr h3 {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--gray-400);
   }
-  .workspace-body {
-    padding: 22px;
-    min-height: 520px;
-  }
+  .workspace-body { padding: 22px; min-height: 520px; }
   .workspace-empty {
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    min-height: 400px;
-    text-align: center;
-    color: var(--muted2);
+    min-height: 420px; text-align: center; color: var(--gray-400);
   }
-  .workspace-empty svg { margin-bottom: 14px; opacity: .35; }
-  .workspace-empty p { font-size: 13.5px; line-height: 1.6; max-width: 320px; }
+  .workspace-empty svg { margin-bottom: 14px; }
+  .workspace-empty p { font-size: 13.5px; line-height: 1.65; max-width: 300px; }
 
   /* ── Stats grid ── */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
   .stat-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
+    background: var(--gray-50); border: 1px solid var(--gray-200);
+    border-radius: 10px; padding: 14px 16px;
   }
   .stat-label {
-    font-size: 10px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .07em;
-    color: var(--muted); margin-bottom: 6px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--gray-400); margin-bottom: 6px;
   }
-  .stat-value { font-size: 26px; font-weight: 800; letter-spacing: -.03em; }
+  .stat-value { font-size: 26px; font-weight: 800; letter-spacing: -.03em; color: var(--black); }
 
   /* ── Sections ── */
   .section { margin-bottom: 16px; }
   .section-label {
-    display: block;
-    font-size: 11px; font-weight: 700;
+    display: block; font-size: 11px; font-weight: 700;
     text-transform: uppercase; letter-spacing: .07em;
-    color: var(--muted); margin-bottom: 7px;
+    color: var(--gray-400); margin-bottom: 7px;
   }
   .panel-box {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 13px 15px;
-    font-size: 13.5px;
-    line-height: 1.7;
-    color: var(--text);
-    white-space: pre-wrap;
-    word-break: break-word;
+    background: var(--gray-50); border: 1px solid var(--gray-200);
+    border-radius: 9px; padding: 13px 15px;
+    font-size: 13.5px; line-height: 1.7; color: var(--black);
+    white-space: pre-wrap; word-break: break-word;
   }
 
-  /* ── Form fields ── */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 14px;
-    margin-bottom: 16px;
-    align-items: start;
-  }
+  /* ── Form ── */
+  .form-grid { display: grid; grid-template-columns: 200px 1fr; gap: 14px; margin-bottom: 16px; align-items: start; }
   .field-group { display: flex; flex-direction: column; gap: 6px; }
   .field-group label {
-    font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--gray-400);
   }
   input[type="text"], textarea {
-    width: 100%;
-    border: 1.5px solid var(--border);
-    border-radius: 9px;
-    background: var(--bg);
-    color: var(--text);
-    padding: 10px 13px;
-    font: inherit;
-    font-size: 13.5px;
-    transition: border-color .15s, box-shadow .15s;
-    outline: none;
+    width: 100%; border: 1.5px solid var(--gray-200); border-radius: 9px;
+    background: var(--white); color: var(--black);
+    padding: 10px 13px; font: inherit; font-size: 13.5px;
+    transition: border-color .15s, box-shadow .15s; outline: none;
   }
   input[type="text"]:focus, textarea:focus {
-    border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(37,99,235,.08);
+    border-color: var(--black);
+    box-shadow: 0 0 0 3px rgba(0,0,0,.06);
   }
-  textarea {
-    min-height: 160px;
-    resize: vertical;
-    line-height: 1.65;
-  }
+  textarea { min-height: 160px; resize: vertical; line-height: 1.65; }
 
   /* ── Actions ── */
-  .action-row {
-    display: flex; align-items: center; gap: 12px;
-    padding-top: 4px;
-  }
+  .action-row { display: flex; align-items: center; gap: 12px; padding-top: 4px; }
   .btn-primary {
-    border: none;
-    border-radius: 9px;
-    padding: 10px 20px;
-    background: var(--blue);
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-    font-family: inherit;
-    font-size: 13.5px;
-    transition: background .15s, transform .1s;
+    border: none; border-radius: 9px; padding: 10px 20px;
+    background: var(--black); color: var(--white);
+    cursor: pointer; font-weight: 600; font-family: inherit; font-size: 13.5px;
+    transition: opacity .15s, transform .1s;
     display: inline-flex; align-items: center; gap: 7px;
   }
-  .btn-primary:hover { background: #1d4ed8; }
+  .btn-primary:hover { opacity: .85; }
   .btn-primary:active { transform: scale(.97); }
-  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
-  .action-note {
-    color: var(--muted);
-    font-size: 12.5px;
-    line-height: 1.55;
-  }
+  .btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+  .action-note { color: var(--gray-400); font-size: 12.5px; line-height: 1.55; }
 
   /* ── Notice ── */
   .notice {
-    padding: 12px 16px;
-    border-radius: 9px;
-    background: var(--blue-dim);
-    border: 1px solid rgba(37,99,235,.15);
-    color: var(--text);
-    font-size: 13px;
-    line-height: 1.6;
+    padding: 12px 16px; border-radius: 9px;
+    background: var(--gray-100); border: 1px solid var(--gray-200);
+    color: var(--black); font-size: 13px; line-height: 1.6;
   }
-  .notice.success { background: var(--green-dim); border-color: rgba(22,163,74,.2); }
+  .notice.success { background: var(--gray-50); border-color: var(--gray-300); }
 
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
@@ -356,21 +241,16 @@
 
 <nav class="topbar">
   <a class="logo-wrap" href="/">
-    <div class="logo-icon">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d="M9 1.5L2.5 4V9C2.5 12.6 5.4 15.8 9 16.8C12.6 15.8 15.5 12.6 15.5 9V4L9 1.5Z" stroke="white" stroke-width="1.3" stroke-linejoin="round" fill="rgba(255,255,255,.15)"/>
-        <path d="M6 9.5L8 11.5L12 7.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
+    <div class="logo-mark">TG</div>
     <div class="logo-label">
-      <h1>TruthGuard AI</h1>
+      <h1>TruthGuard</h1>
       <p>Agent Portal</p>
     </div>
   </a>
   <div class="topbar-right">
     <div class="status-pill" id="socketStatus">● Connecting</div>
     <a class="back-link" href="/">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 2L3.5 5.5L7 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Back to Chat
     </a>
   </div>
@@ -384,7 +264,7 @@
 
   <div class="layout">
     <aside class="sidebar">
-      <div class="sidebar-header">
+      <div class="sidebar-hdr">
         <h3>Pending Tasks</h3>
         <span class="queue-badge zero" id="queueCount">0</span>
       </div>
@@ -394,12 +274,13 @@
     </aside>
 
     <main class="workspace">
-      <div class="workspace-header">
-        <h3>Review Workspace</h3>
-      </div>
+      <div class="workspace-hdr"><h3>Review Workspace</h3></div>
       <div class="workspace-body" id="workspaceBody">
         <div class="workspace-empty">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="6" y="8" width="28" height="24" rx="4" stroke="#94a3b8" stroke-width="1.8"/><path d="M12 16H28M12 22H22" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect x="4" y="6" width="28" height="24" rx="4" stroke="#a3a3a3" stroke-width="1.6"/>
+            <path d="M10 14H26M10 20H20" stroke="#a3a3a3" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
           <p>Select a task from the queue to review the flagged AI response and send a corrected answer.</p>
         </div>
       </div>
@@ -421,21 +302,17 @@ function esc(s) {
 function setStatus(text, tone = 'green') {
   const el = document.getElementById('socketStatus');
   el.textContent = `● ${text}`;
-  el.style.color       = tone === 'red' ? 'var(--red)'   : tone === 'amber' ? 'var(--amber)'   : 'var(--green)';
-  el.style.borderColor = tone === 'red' ? 'rgba(220,38,38,.2)' : tone === 'amber' ? 'rgba(217,119,6,.2)' : 'rgba(22,163,74,.2)';
-  el.style.background  = tone === 'red' ? 'var(--red-dim)'     : tone === 'amber' ? 'var(--amber-dim)'   : 'var(--green-dim)';
+  el.style.color       = tone === 'red' ? '#dc2626' : '#737373';
+  el.style.borderColor = '#e8e8e8';
+  el.style.background  = '#f4f4f4';
 }
 
 function connect() {
   const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   const WS_BASE = isLocal ? `ws://${location.host}` : 'wss://truthguard-ai-yyf7.onrender.com';
   socket = new WebSocket(`${WS_BASE}/ws/agent`);
-
   socket.addEventListener('open', () => setStatus('Connected'));
-  socket.addEventListener('close', () => {
-    setStatus('Reconnecting', 'amber');
-    setTimeout(connect, 1500);
-  });
+  socket.addEventListener('close', () => { setStatus('Reconnecting', 'amber'); setTimeout(connect, 1500); });
   socket.addEventListener('error', () => setStatus('Disconnected', 'red'));
   socket.addEventListener('message', (ev) => {
     const event = JSON.parse(ev.data);
@@ -455,10 +332,7 @@ function connect() {
 }
 
 function send(payload) {
-  if (!socket || socket.readyState !== WebSocket.OPEN) {
-    showNotice('The portal socket is not connected yet.');
-    return;
-  }
+  if (!socket || socket.readyState !== WebSocket.OPEN) { showNotice('Portal socket not connected.'); return; }
   socket.send(JSON.stringify(payload));
 }
 
@@ -466,42 +340,28 @@ function renderTaskList() {
   const list  = document.getElementById('taskList');
   const empty = document.getElementById('emptyState');
   const count = document.getElementById('queueCount');
-
   count.textContent = String(tasks.length);
   count.className   = 'queue-badge' + (tasks.length === 0 ? ' zero' : '');
 
-  if (!tasks.length) {
-    list.innerHTML = '';
-    list.appendChild(empty);
-    empty.style.display = 'block';
-    return;
-  }
-
+  if (!tasks.length) { list.innerHTML = ''; list.appendChild(empty); empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   list.innerHTML = tasks.map(task => {
     const isInsufficient = task.trigger === 'INSUFFICIENT_INFO';
-    const tagClass = isInsufficient ? 'insufficient' : 'hallucinated';
-    const tagText  = isInsufficient ? 'No Info' : 'Hallucinated';
     return `
       <button class="task-btn ${task.task_id === selectedTaskId ? 'active' : ''}" onclick="selectTask('${task.task_id}')">
         <div class="task-id">
           <span>${esc(task.task_id)}</span>
-          <span class="trigger-tag ${tagClass}">${tagText}</span>
+          <span class="trigger-tag ${isInsufficient ? 'insufficient' : 'hallucinated'}">${isInsufficient ? 'No Info' : 'Flagged'}</span>
         </div>
         <div class="task-q">${esc(task.question)}</div>
       </button>`;
   }).join('');
 }
 
-function selectTask(taskId) {
-  selectedTaskId = taskId;
-  renderTaskList();
-  renderWorkspace();
-}
+function selectTask(taskId) { selectedTaskId = taskId; renderTaskList(); renderWorkspace(); }
 
 function showNotice(text, type = '') {
-  document.getElementById('workspaceBody').innerHTML =
-    `<div class="notice ${type}">${esc(text)}</div>`;
+  document.getElementById('workspaceBody').innerHTML = `<div class="notice ${type}">${esc(text)}</div>`;
 }
 
 function renderWorkspace() {
@@ -510,7 +370,10 @@ function renderWorkspace() {
   if (!task) {
     root.innerHTML = `
       <div class="workspace-empty">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="6" y="8" width="28" height="24" rx="4" stroke="#94a3b8" stroke-width="1.8"/><path d="M12 16H28M12 22H22" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect x="4" y="6" width="28" height="24" rx="4" stroke="#a3a3a3" stroke-width="1.6"/>
+          <path d="M10 14H26M10 20H20" stroke="#a3a3a3" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
         <p>Select a task from the queue to review the flagged AI response and send a corrected answer.</p>
       </div>`;
     return;
@@ -521,29 +384,27 @@ function renderWorkspace() {
   const summary     = result.consistency?.final_summary || '';
   const sourceCount = (result.sources || []).length;
   const defaultReply = task.trigger === 'INSUFFICIENT_INFO'
-    ? `Hi! I'm the human support agent.\n\nRegarding your question: "${task.question}"\n\n`
+    ? `Hi, I'm the human support agent.\n\nRegarding your question: "${task.question}"\n\n`
     : (draft || `I reviewed your question: "${task.question}"\n\nHere is the corrected response:\n`);
-
-  const scoreColor = task.consistency_label === 'TRUSTED' ? 'var(--green)' : task.consistency_label === 'SUSPICIOUS' ? 'var(--amber)' : 'var(--red)';
 
   root.innerHTML = `
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-label">Hallucination Label</div>
-        <div class="stat-value" style="color:${scoreColor};font-size:16px;letter-spacing:-.01em">${esc(task.consistency_label || 'HALLUCINATED')}</div>
+        <div class="stat-label">Label</div>
+        <div class="stat-value" style="font-size:15px;letter-spacing:-.01em">${esc(task.consistency_label || 'FLAGGED')}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Risk Score</div>
-        <div class="stat-value" style="color:${scoreColor}">${esc(String(task.hallucination_score ?? 0))}</div>
+        <div class="stat-value">${esc(String(task.hallucination_score ?? 0))}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Confidence</div>
-        <div class="stat-value" style="color:var(--blue)">${esc(String(task.confidence_score ?? 0))}</div>
+        <div class="stat-value">${esc(String(task.confidence_score ?? 0))}</div>
       </div>
     </div>
 
     <div class="section">
-      <label class="section-label">Original User Question</label>
+      <label class="section-label">Original Question</label>
       <div class="panel-box">${esc(task.question)}</div>
     </div>
 
@@ -556,14 +417,14 @@ function renderWorkspace() {
       <label class="section-label">Why It Was Held Back</label>
       <div class="panel-box">${esc(
         task.trigger === 'INSUFFICIENT_INFO'
-          ? 'The AI responded that it does not have enough information in the Stripe docs to answer this question. It was forwarded here so a human agent can provide a direct answer.'
-          : (summary || 'The consistency guard labeled this answer as hallucinated, so it was redirected for human intervention.')
+          ? 'The AI did not have enough information in the Stripe docs. Forwarded for a direct human answer.'
+          : (summary || 'The consistency guard labeled this answer as hallucinated.')
       )}</div>
     </div>
 
     <div class="section">
-      <label class="section-label">Session Context</label>
-      <div class="panel-box">${esc('Sources attached: ' + sourceCount + '\nSession ID: ' + task.session_id)}</div>
+      <label class="section-label">Context</label>
+      <div class="panel-box">${esc('Sources attached: ' + sourceCount + '\nSession: ' + task.session_id)}</div>
     </div>
 
     <div class="form-grid">
@@ -579,10 +440,10 @@ function renderWorkspace() {
 
     <div class="action-row">
       <button class="btn-primary" onclick="resolveTask('${task.task_id}')">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5L5 10L11.5 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Send Human Reply
       </button>
-      <span class="action-note">Sends the verified answer back to the exact live chat session that asked the question.</span>
+      <span class="action-note">Delivers the verified answer directly to the live chat session.</span>
     </div>
   `;
 }
@@ -590,7 +451,7 @@ function renderWorkspace() {
 function resolveTask(taskId) {
   const reviewer = document.getElementById('reviewerName')?.value?.trim() || 'Human Agent';
   const answer   = document.getElementById('reviewAnswer')?.value?.trim() || '';
-  if (!answer) { showNotice('Write a reply before sending the human intervention response.'); return; }
+  if (!answer) { showNotice('Write a reply before sending.'); return; }
   send({ type: 'resolve_task', task_id: taskId, answer, reviewer });
 }
 
