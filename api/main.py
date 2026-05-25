@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import uuid4
 
+import requests
+
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -204,6 +206,28 @@ class ReviewCoordinator:
 coordinator = ReviewCoordinator()
 
 
+# Free hosting (e.g. Render) spins the instance down after ~15 min idle.
+# A periodic self-ping keeps the inactivity timer from ever firing.
+# Render auto-provides RENDER_EXTERNAL_URL; KEEP_AWAKE_URL can override it.
+_KEEP_AWAKE_URL = os.getenv("KEEP_AWAKE_URL") or os.getenv("RENDER_EXTERNAL_URL", "")
+_KEEP_AWAKE_INTERVAL = int(os.getenv("KEEP_AWAKE_INTERVAL", "600"))  # seconds
+
+
+async def _keep_awake() -> None:
+    if not _KEEP_AWAKE_URL:
+        print("  keep-awake: no base URL configured — self-ping disabled.")
+        return
+    ping_url = _KEEP_AWAKE_URL.rstrip("/") + "/health"
+    print(f"  keep-awake: pinging {ping_url} every {_KEEP_AWAKE_INTERVAL}s")
+    loop = asyncio.get_running_loop()
+    while True:
+        await asyncio.sleep(_KEEP_AWAKE_INTERVAL)
+        try:
+            await loop.run_in_executor(None, lambda: requests.get(ping_url, timeout=10))
+        except Exception as exc:
+            print(f"  keep-awake ping failed: {exc}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     loop = asyncio.get_event_loop()
@@ -217,7 +241,11 @@ async def lifespan(app: FastAPI):
         print(f"  LLM model:       {get_llm_model()}")
     except Exception as exc:
         print(f"  WARNING — LLM warmup: {exc}")
-    yield
+    keep_awake_task = asyncio.create_task(_keep_awake())
+    try:
+        yield
+    finally:
+        keep_awake_task.cancel()
 
 
 app = FastAPI(title="TruthGuard AI", version="1.1.0", lifespan=lifespan)

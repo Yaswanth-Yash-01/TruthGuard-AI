@@ -12,4 +12,4 @@ LLM_MODEL: str = "command-r-plus-08-2024"
 TOP_K: int = 5
 CHUNK_SIZE: int = 500
 CHUNK_OVERLAP: int = 100
-MAX_PAGES: int = 100
+MAX_PAGES: int = int(os.getenv("MAX_PAGES", "400"))

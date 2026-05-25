@@ -21,12 +21,35 @@ from config.settings import (
 )
 
 SEED_URLS = [
-    "https://stripe.com/docs/payments",
-    "https://stripe.com/docs/api",
-    "https://stripe.com/docs/webhooks",
-    "https://stripe.com/docs/billing",
-    "https://stripe.com/docs/connect",
+    "https://docs.stripe.com/payments",
+    "https://docs.stripe.com/api",
+    "https://docs.stripe.com/webhooks",
+    "https://docs.stripe.com/billing",
+    "https://docs.stripe.com/connect",
+    "https://docs.stripe.com/checkout",
+    "https://docs.stripe.com/payment-links",
+    "https://docs.stripe.com/invoicing",
+    "https://docs.stripe.com/billing/subscriptions/overview",
+    "https://docs.stripe.com/tax",
+    "https://docs.stripe.com/radar",
+    "https://docs.stripe.com/terminal",
+    "https://docs.stripe.com/issuing",
+    "https://docs.stripe.com/treasury",
+    "https://docs.stripe.com/identity",
+    "https://docs.stripe.com/disputes",
+    "https://docs.stripe.com/refunds",
+    "https://docs.stripe.com/reports",
+    "https://docs.stripe.com/payouts",
+    "https://docs.stripe.com/security",
+    "https://docs.stripe.com/testing",
+    "https://docs.stripe.com/error-codes",
+    "https://docs.stripe.com/currencies",
+    "https://docs.stripe.com/keys",
 ]
+
+# Stripe migrated its docs to docs.stripe.com; the legacy stripe.com/docs/*
+# URLs 301-redirect there, so we accept both hosts when crawling.
+ALLOWED_HOSTS = ("docs.stripe.com", "stripe.com", "www.stripe.com")
 
 HEADERS = {
     "User-Agent": (
@@ -107,12 +130,13 @@ def get_stripe_links(soup: BeautifulSoup, base_url: str) -> list[str]:
     for a in soup.find_all("a", href=True):
         full = urljoin(base_url, a["href"])
         parsed = urlparse(full)
-        if (
+        # docs.stripe.com serves docs at the root (/payments, /api, ...),
+        # while the legacy stripe.com host nests them under /docs.
+        is_doc = parsed.netloc == "docs.stripe.com" or (
             parsed.netloc in ("stripe.com", "www.stripe.com")
             and parsed.path.startswith("/docs")
-            and "#" not in full
-            and "?" not in full
-        ):
+        )
+        if is_doc and "#" not in full and "?" not in full:
             links.append(full.split("#")[0])
     return links
 
@@ -171,6 +195,11 @@ def scrape_and_ingest():
             print(f"  Skipped ({exc})")
             continue
 
+        # Follow redirects (e.g. stripe.com/docs/* -> docs.stripe.com/*) so
+        # link extraction and stored metadata use the canonical final URL.
+        final_url = resp.url.split("#")[0]
+        visited.add(final_url)
+
         soup = BeautifulSoup(resp.text, "html.parser")
         title_tag = soup.find("title")
         page_title = title_tag.get_text(strip=True) if title_tag else url
@@ -191,12 +220,12 @@ def scrape_and_ingest():
 
         vectors = []
         for i, (chunk, emb) in enumerate(zip(chunks, embeddings)):
-            vid = hashlib.md5(f"{url}||{i}".encode()).hexdigest()
+            vid = hashlib.md5(f"{final_url}||{i}".encode()).hexdigest()
             vectors.append({
                 "id": vid,
                 "values": emb,
                 "metadata": {
-                    "url": url,
+                    "url": final_url,
                     "page_title": page_title,
                     "chunk_index": i,
                     "text": chunk,
@@ -209,7 +238,7 @@ def scrape_and_ingest():
         total_vectors += len(vectors)
         print(f"  Upserted {len(vectors)} chunks (total: {total_vectors})")
 
-        for link in get_stripe_links(soup, url):
+        for link in get_stripe_links(soup, final_url):
             if link not in visited and link not in to_visit:
                 to_visit.append(link)
 
